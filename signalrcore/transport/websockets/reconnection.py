@@ -1,6 +1,7 @@
 import threading
 import time
 from enum import Enum
+import asyncio
 
 
 class ConnectionStateChecker(object):
@@ -14,20 +15,17 @@ class ConnectionStateChecker(object):
         self.last_message = time.time()
         self.ping_function = ping_function
         self.running = False
-        self._thread = None
 
     def start(self):
         self.running = True
-        self._thread = threading.Thread(target=self.run)
-        self._thread.daemon = True
-        self._thread.start()
+        self._run_task = asyncio.create_task(self.run())
 
-    def run(self):
+    async def run(self):
         while self.running:
-            time.sleep(self.sleep)
+            await asyncio.sleep(self.sleep)
             time_without_messages = time.time() - self.last_message
             if self.keep_alive_interval < time_without_messages:
-                self.ping_function()
+                await self.ping_function()
 
     def stop(self):
         self.running = False

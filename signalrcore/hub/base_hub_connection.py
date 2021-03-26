@@ -7,7 +7,7 @@ import time
 import ssl
 from typing import Callable
 from signalrcore.messages.message_type import MessageType
-from signalrcore.messages.stream_invocation_message\
+from signalrcore.messages.stream_invocation_message \
     import StreamInvocationMessage
 from signalrcore.messages.ping_message import PingMessage
 from .errors import UnAuthorizedHubError, HubError, HubConnectionError
@@ -19,13 +19,14 @@ from ..helpers import Helpers
 from ..subject import Subject
 from ..messages.invocation_message import InvocationMessage
 
-class BaseHubConnection(object):
+
+class BaseHubConnection:
     def __init__(
             self,
             url,
             protocol,
             headers={},
-            **kwargs):        
+            **kwargs):
         self.headers = headers
         self.logger = Helpers.get_logger()
         self.handlers = []
@@ -39,13 +40,13 @@ class BaseHubConnection(object):
             on_message=self.on_message,
             **kwargs)
 
-    def start(self):
+    async def start(self):
         self.logger.debug("Connection started")
-        return self.transport.start()
+        return await self.transport.start()
 
-    def stop(self):
+    async def stop(self):
         self.logger.debug("Connection stop")
-        return self.transport.stop()
+        return await self.transport.stop()
 
     def on_close(self, callback):
         """Configures on_close connection callback.
@@ -87,7 +88,7 @@ class BaseHubConnection(object):
         self.logger.debug("Handler registered started {0}".format(event))
         self.handlers.append((event, callback_function))
 
-    def send(self, method, arguments, on_invocation=None):
+    async def send(self, method, arguments, on_invocation=None):
         """Sends a message
 
         Args:
@@ -102,7 +103,7 @@ class BaseHubConnection(object):
         """
         if not self.transport.is_running():
             raise HubConnectionError(
-                "Hub is not running you cand send messages")
+                "Hub is not running you can't send messages")
 
         if type(arguments) is not list and type(arguments) is not Subject:
             raise TypeError("Arguments of a message must be a list or subject")
@@ -119,16 +120,15 @@ class BaseHubConnection(object):
                     InvocationHandler(
                         message.invocation_id,
                         on_invocation))
-            
-            self.transport.send(message)
+
+            await self.transport.send(message)
 
         if type(arguments) is Subject:
             arguments.connection = self
             arguments.target = method
             arguments.start()
 
-
-    def on_message(self, messages):
+    async def on_message(self, messages):
         for message in messages:
             if message.type == MessageType.invocation_binding_failure:
                 self.logger.error(message)
@@ -148,11 +148,11 @@ class BaseHubConnection(object):
                         "event '{0}' hasn't fire any handler".format(
                             message.target))
                 for _, handler in fired_handlers:
-                    handler(message.arguments)
+                    await handler(message.arguments)
 
             if message.type == MessageType.close:
                 self.logger.info("Close message received from server")
-                self.stop()
+                await self.stop()
                 return
 
             if message.type == MessageType.completion:

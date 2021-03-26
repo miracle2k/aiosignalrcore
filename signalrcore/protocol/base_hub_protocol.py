@@ -12,7 +12,8 @@ from ..messages.close_message import CloseMessage  # 7
 from ..messages.message_type import MessageType
 from ..helpers import Helpers
 
-class BaseHubProtocol(object):
+
+class BaseHubProtocol:
     def __init__(self, protocol, version, transfer_format, record_separator):
         self.protocol = protocol
         self.version = version
@@ -23,7 +24,7 @@ class BaseHubProtocol(object):
     def get_message(dict_message):
         message_type =  MessageType.close\
             if not "type" in dict_message.keys() else MessageType(dict_message["type"])
-        
+
         dict_message["invocation_id"] = dict_message.get("invocationId", None)
         dict_message["headers"] = dict_message.get("headers", {})
         dict_message["error"] = dict_message.get("error", None)
@@ -45,7 +46,7 @@ class BaseHubProtocol(object):
 
     def decode_handshake(self, raw_message: str) -> HandshakeResponseMessage:
         messages = raw_message.split(self.record_separator)
-        messages = list(filter(lambda x: x != "", messages))        
+        messages = list(filter(lambda x: x != "", messages))
         data = json.loads(messages[0])
         idx = raw_message.index(self.record_separator)
         return HandshakeResponseMessage(data.get("error", None)), self.parse_messages(raw_message[idx + 1 :]) if len(messages) > 1 else []

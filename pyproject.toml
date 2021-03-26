@@ -1,0 +1,16 @@
+[tool]
+[tool.poetry]
+name = "signalrcore"
+version = "0.9.2"
+description = "A Python SignalR Core client(json and messagepack), with invocation auth and two way streaming. Compatible with azure / serverless functions. Also with automatic reconnect and manually reconnect."
+keywords = ["signalr", "core", "client", "3.1"]
+classifiers = ["Programming Language :: Python :: 3.6"]
+homepage = "https://github.com/mandrewcito/signalrcore"
+authors = ["mandrewcito <anbaalo@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+msgpack = "==1.0.2"
+requests = ">=2.22.0"
+websocket-client = "==0.54.0"
