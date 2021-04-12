@@ -1,0 +1,34 @@
+name: Release
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+    - uses: actions/checkout@master
+    - name: set env
+      run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.6.x'
+    - uses: snok/install-poetry@v1.1.1
+    - name: Install dependencies
+      run: |
+        poetry install -v
+    - name: Poetry publish
+      run: |
+        poetry config http-basic.pypi __token__ ${{secrets.PYPI_TOKEN}}
+        poetry build
+        poetry publish
+    - name: Build github release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
