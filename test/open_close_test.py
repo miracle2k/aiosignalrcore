@@ -6,8 +6,8 @@ import threading
 import uuid
 
 from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.subject import Subject
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.subject import Subject
 from test.base_test_case import BaseTestCase, Urls
 
 class TestClientStreamMethod(BaseTestCase):    

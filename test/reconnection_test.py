@@ -6,10 +6,10 @@ import uuid
 import threading
 
 from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.hub.errors import HubConnectionError
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub.errors import HubConnectionError
 from test.base_test_case import BaseTestCase, Urls
-from signalrcore.transport.websockets.reconnection import RawReconnectionHandler, IntervalReconnectionHandler
+from aiosignalrcore.transport.websockets.reconnection import RawReconnectionHandler, IntervalReconnectionHandler
 
 
 class TestReconnectMethods(BaseTestCase):

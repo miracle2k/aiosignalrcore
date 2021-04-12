@@ -5,7 +5,7 @@ import time
 import uuid
 
 from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 from test.base_test_case import BaseTestCase, Urls
 
 class TestSendMethod(BaseTestCase):

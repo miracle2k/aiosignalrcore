@@ -1,4 +1,4 @@
-# SignalR core client
+# SignalR core client (async fork)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?logo=paypal&style=flat-square)](https://www.paypal.me/mandrewcito/1)
 ![Pypi](https://img.shields.io/pypi/v/signalrcore.svg)
 [![Downloads](https://pepy.tech/badge/signalrcore/month)](https://pepy.tech/project/signalrcore/month)
@@ -191,7 +191,7 @@ hub_connection = HubConnectionBuilder()\
 ## Configure messagepack
 
 ```python
-from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 
 HubConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl":False})\
@@ -251,7 +251,7 @@ hub_connection.stream(
 ```
 ## Client side Streaming
 ```python
-from signalrcore.subject import  Subject
+from aiosignalrcore.subject import  Subject
 
 subject = Subject()
 
@@ -280,7 +280,7 @@ A mini example could be something like this:
 ```python
 import logging
 import sys
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 
 
 def input_with_default(input_text, default_value):

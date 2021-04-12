@@ -1,26 +1,46 @@
+.ONESHELL:
+.PHONY: test
+.DEFAULT_GOAL: all
 
-tests:
-	venv/bin/python3 -m unittest discover -s test/ -p "*_test.py" -v
+all: install lint test cover
 
-package:
-	python3 setup.py sdist bdist_wheel
+debug:
+	pip install . --force --no-deps
 
-all:
-	tests package
+install:
+	poetry install --remove-untracked
 
-upload:
-	twine upload dist/* --verbose
+isort:
+	poetry run isort src
 
-coverage:
-	coverage run -m unittest discover -s test/ -p "*_test.py"
-	coverage html --omit="venv/*" -d coverage_html
+pylint:
+	poetry run pylint src || poetry run pylint-exit $$?
 
-clean:
-	@find . -name "*.pyc" -exec rm -f '{}' +
-	@find . -name "*~" -exec rm -f '{}' +
-	@find . -name "__pycache__" -exec rm -R -f '{}' +
-	@rm -rf build/*
-	@rm -rf coverage_html/*
-	@rm -rf dist/*
-	@rm -rf json_repository.egg-info/*
-	@echo "Done!"
+mypy:
+	poetry run mypy src
+
+lint: isort pylint mypy
+
+test:
+	PYTHONPATH="$$PYTHONPATH:src" poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v .
+
+cover:
+	poetry run diff-cover coverage.xml
+
+build:
+	poetry build
+
+release-patch:
+	bumpversion patch
+	git push --tags
+	git push
+
+release-minor:
+	bumpversion minor
+	git push --tags
+	git push
+
+release-major:
+	bumpversion major
+	git push --tags
+	git push

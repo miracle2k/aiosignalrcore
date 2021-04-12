@@ -5,8 +5,8 @@ import time
 import uuid
 import requests
 from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 from test.base_test_case import BaseTestCase, Urls
 
 class TestSendAuthErrorMethod(BaseTestCase):

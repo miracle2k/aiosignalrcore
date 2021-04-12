@@ -1,4 +1,5 @@
 import json
+from typing import Tuple, Any
 
 from ..messages.handshake.request import HandshakeRequestMessage
 from ..messages.handshake.response import HandshakeResponseMessage
@@ -44,7 +45,7 @@ class BaseHubProtocol:
         if message_type is MessageType.close:
             return CloseMessage(**dict_message)
 
-    def decode_handshake(self, raw_message: str) -> HandshakeResponseMessage:
+    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Any]:
         messages = raw_message.split(self.record_separator)
         messages = list(filter(lambda x: x != "", messages))
         data = json.loads(messages[0])

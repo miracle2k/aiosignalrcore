@@ -129,7 +129,7 @@ class HubConnectionBuilder(object):
 
     def with_hub_protocol(self, protocol):
         """Changes transport protocol
-            from signalrcore.protocol.messagepack_protocol\
+            from aiosignalrcore.protocol.messagepack_protocol\
                 import MessagePackHubProtocol
 
             HubConnectionBuilder()\

@@ -2,7 +2,7 @@ import requests
 import sys
 import logging
 sys.path.append("./")
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 
 
 def input_with_default(input_text, default_value):

@@ -1,5 +1,5 @@
 import json
-import msgpack
+import msgpack  # type: ignore
 from .base_hub_protocol import BaseHubProtocol
 from ..messages.handshake.request import HandshakeRequestMessage
 from ..messages.handshake.response import HandshakeResponseMessage

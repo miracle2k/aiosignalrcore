@@ -1,4 +1,3 @@
-import websocket
 import threading
 import requests
 import traceback
@@ -6,12 +5,12 @@ import uuid
 import time
 import ssl
 from typing import Callable
-from signalrcore.messages.message_type import MessageType
-from signalrcore.messages.stream_invocation_message \
+from aiosignalrcore.messages.message_type import MessageType
+from aiosignalrcore.messages.stream_invocation_message \
     import StreamInvocationMessage
-from signalrcore.messages.ping_message import PingMessage
+from aiosignalrcore.messages.ping_message import PingMessage
 from .errors import UnAuthorizedHubError, HubError, HubConnectionError
-from signalrcore.helpers import Helpers
+from aiosignalrcore.helpers import Helpers
 from .handlers import StreamHandler, InvocationHandler
 from ..protocol.messagepack_protocol import MessagePackHubProtocol
 from ..transport.websockets.websocket_transport import WebsocketTransport

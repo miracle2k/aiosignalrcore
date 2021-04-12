@@ -3,8 +3,8 @@ import time
 import sys
 sys.path.append("./")
 import logging
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.subject import Subject
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.subject import Subject
 
 
 def input_with_default(input_text, default_value):

@@ -1,8 +1,8 @@
 import logging
 import sys
 sys.path.append("./")
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 
 def input_with_default(input_text, default_value):
     value = input(input_text.format(default_value))
