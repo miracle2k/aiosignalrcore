@@ -1,9 +1,9 @@
 [tool]
 [tool.poetry]
 name = "aiosignalrcore"
-version = "0.0.0"
+version = "0.9.2"
 description = "Async fork of Python SignalR Core client(json and messagepack), with invocation auth and two way streaming. Compatible with azure / serverless functions. Also with automatic reconnect and manually reconnect."
-keywords = ["signalr", "core", "client", "3.1"]
+keywords = ["asyncio", "signalr", "core", "client", "3.1"]
 classifiers = ["Programming Language :: Python :: 3.6"]
 homepage = "https://github.com/dipdup-net/aiosignalrcore"
 authors = ["mandrewcito <anbaalo@gmail.com>"]
