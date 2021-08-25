@@ -208,7 +208,7 @@ class BaseHubConnection:
                         lambda h: h.invocation_id != message.invocation_id,
                         self.stream_handlers))
 
-    def stream(self, event, event_params):
+    async def stream(self, event, event_params):
         """Starts server streaming
             connection.stream(
             "Counter",
@@ -228,7 +228,7 @@ class BaseHubConnection:
         invocation_id = str(uuid.uuid4())
         stream_obj = StreamHandler(event, invocation_id)
         self.stream_handlers.append(stream_obj)
-        self.transport.send(
+        await self.transport.send(
             StreamInvocationMessage(
                 invocation_id,
                 event,
