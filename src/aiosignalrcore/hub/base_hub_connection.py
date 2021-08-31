@@ -39,13 +39,9 @@ class BaseHubConnection:
             on_message=self.on_message,
             **kwargs)
 
-    async def start(self):
+    async def run(self):
         self.logger.debug("Connection started")
-        return await self.transport.start()
-
-    async def stop(self):
-        self.logger.debug("Connection stop")
-        return await self.transport.stop()
+        return await self.transport.run()
 
     def on_close(self, callback):
         """Configures on_close connection callback.
@@ -100,10 +96,6 @@ class BaseHubConnection:
             HubConnectionError: If hub is not ready to send
             TypeError: If arguments are invalid list or Subject
         """
-        if not self.transport.is_running():
-            raise HubConnectionError(
-                "Hub is not running you can't send messages")
-
         if type(arguments) is not list and type(arguments) is not Subject:
             raise TypeError("Arguments of a message must be a list or subject")
 
@@ -151,7 +143,6 @@ class BaseHubConnection:
 
             if message.type == MessageType.close:
                 self.logger.info("Close message received from server")
-                await self.stop()
                 return
 
             if message.type == MessageType.completion:

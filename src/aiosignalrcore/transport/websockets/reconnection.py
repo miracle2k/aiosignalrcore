@@ -9,27 +9,20 @@ class ConnectionStateChecker(object):
             self,
             ping_function,
             keep_alive_interval,
-            sleep=1):
-        self.sleep = sleep
-        self.keep_alive_interval = keep_alive_interval
-        self.last_message = time.time()
-        self.ping_function = ping_function
-        self.running = False
-
-    def start(self):
-        self.running = True
-        self._run_task = asyncio.create_task(self.run())
+        ):
+        self._keep_alive_interval = keep_alive_interval
+        self._last_message = time.time()
+        self._ping_function = ping_function
 
     async def run(self):
-        while self.running:
-            await asyncio.sleep(self.sleep)
-            time_without_messages = time.time() - self.last_message
-            if self.keep_alive_interval < time_without_messages:
-                await self.ping_function()
+        while True:
+            await asyncio.sleep(1)
+            time_without_messages = time.time() - self._last_message
+            if self._keep_alive_interval < time_without_messages:
+                await self._ping_function()
 
-    def stop(self):
-        self.running = False
-
+    def reset(self):
+        self._last_message = time.time()
 
 class ReconnectionType(Enum):
     raw = 0  # Reconnection with max reconnections and constant sleep time

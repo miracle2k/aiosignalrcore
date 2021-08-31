@@ -16,14 +16,8 @@ class BaseTransport:
     def on_close_callback(self, callback):
         self._on_close = callback
 
-    def start(self): # pragma: no cover
+    async def run(self): # pragma: no cover
         raise NotImplementedError()
 
-    def stop(self): # pragma: no cover
-        raise NotImplementedError()
-    
-    def is_running(self): # pragma: no cover
-        raise NotImplementedError()
-
-    def send(self, message, on_invocation=None):  # pragma: no cover
+    async def send(self, message, on_invocation=None):  # pragma: no cover
         raise NotImplementedError()
