@@ -239,7 +239,7 @@ class WebsocketTransport(BaseTransport):
                     self._on_close()
                 raise ValueError(str(ex))
             # Connection closed
-            self.handle_reconnect()
+            await self.handle_reconnect()
         except Exception as ex:
             raise ex
 
@@ -251,16 +251,13 @@ class WebsocketTransport(BaseTransport):
         except Exception as ex:
             self.logger.error(ex)
             sleep_time = self.reconnection_handler.next()
-            threading.Thread(
-                target=self.deferred_reconnect,
-                args=(sleep_time,)
-            ).start()
+            asyncio.create_task(self.deferred_reconnect(sleep_time)),
 
     async def deferred_reconnect(self, sleep_time):
         await asyncio.sleep(sleep_time)
         try:
             if not self.connection_alive:
-                self.send(PingMessage())
+                await self.send(PingMessage())
         except Exception as ex:
             self.logger.error(ex)
             self.reconnection_handler.reconnecting = False
