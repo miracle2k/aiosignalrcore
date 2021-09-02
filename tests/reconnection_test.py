@@ -2,7 +2,7 @@ import logging
 import threading
 import time
 
-from aiosignalrcore.hub.errors import HubConnectionError
+from aiosignalrcore.exceptions import ConnectionError
 from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.transport.websockets.reconnection import IntervalReconnectionHandler, RawReconnectionHandler
 from tests.base_test_case import BaseTestCase
@@ -74,7 +74,7 @@ class TestReconnectMethods(BaseTestCase):
 
         time.sleep(10)
 
-        self.assertRaises(HubConnectionError, lambda: connection.send("DisconnectMe", []))
+        self.assertRaises(ConnectionError, lambda: connection.send("DisconnectMe", []))
 
         connection.stop()
         del _lock

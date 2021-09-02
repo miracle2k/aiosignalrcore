@@ -3,7 +3,7 @@ import logging
 from json import JSONEncoder
 
 from aiosignalrcore.messages.message_type import MessageType
-from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
+from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class MyEncoder(JSONEncoder):
         return data
 
 
-class JsonHubProtocol(BaseHubProtocol):
+class JsonProtocol(Protocol):
     def __init__(self) -> None:
         super().__init__("json", 1, "Text", chr(0x1E))
         self.encoder = MyEncoder()

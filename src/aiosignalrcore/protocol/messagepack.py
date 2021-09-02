@@ -14,12 +14,12 @@ from aiosignalrcore.messages.invocation_message import InvocationMessage
 from aiosignalrcore.messages.ping_message import PingMessage  # 6
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage  # 4
 from aiosignalrcore.messages.stream_item_message import StreamItemMessage  # 2
-from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
+from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)
 
 
-class MessagePackHubProtocol(BaseHubProtocol):
+class MessagepackProtocol(Protocol):
 
     _priority = [
         "type",
@@ -133,6 +133,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
 
         elif raw[0] == 7:  # CloseMessageEncoding
             return CloseMessage(error=raw[1])  # AllowReconnect is missing
+        # TODO: remove
         print(".......................................")
         print(raw)
         print("---------------------------------------")

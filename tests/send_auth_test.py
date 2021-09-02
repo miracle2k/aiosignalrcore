@@ -5,7 +5,7 @@ import uuid
 import requests
 
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.protocol.messagepack_protocol import MessagepackProtocol
 from tests.base_test_case import BaseTestCase, Urls
 
 
@@ -37,7 +37,7 @@ class TestSendAuthMethod(BaseTestCase):
         )
 
         if msgpack:
-            builder.with_hub_protocol(MessagePackHubProtocol())
+            builder.with_hub_protocol(MessagepackProtocol())
 
         builder.configure_logging(logging.WARNING).with_automatic_reconnect(
             {

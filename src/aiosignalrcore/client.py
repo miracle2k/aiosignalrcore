@@ -11,11 +11,11 @@ from aiosignalrcore.messages.invocation_message import InvocationMessage
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
 from aiosignalrcore.messages.stream_item_message import StreamItemMessage
-from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
+from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.subject import Subject
-from aiosignalrcore.transport.websockets.websocket_transport import WebsocketTransport
+from aiosignalrcore.transport.websockets import WebsocketTransport
 
-from .protocol.json_hub_protocol import JsonHubProtocol
+from aiosignalrcore.protocol.json import JsonProtocol
 
 _logger = logging.getLogger(__name__)
 
@@ -25,11 +25,11 @@ class SignalRClient:
     def __init__(
         self,
         url: str,
-        protocol: Optional[BaseHubProtocol] = None,
+        protocol: Optional[Protocol] = None,
         headers: Optional[Dict[str, str]] = None,
     ) -> None:
         self._url = url
-        self._protocol = protocol or JsonHubProtocol()
+        self._protocol = protocol or JsonProtocol()
         self._headers = headers or {}
         self._handlers: List[Tuple[str, Callable]] = []
         self._stream_handlers: List[Union[StreamHandler, InvocationHandler]] = []
@@ -73,7 +73,7 @@ class SignalRClient:
                 will be raised on send server function ends. Defaults to None.
 
         Raises:
-            HubConnectionError: If hub is not ready to send
+            ConnectionError: If hub is not ready to send
             TypeError: If arguments are invalid list or Subject
         """
         if isinstance(arguments, list):

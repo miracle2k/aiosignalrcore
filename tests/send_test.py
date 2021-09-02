@@ -2,7 +2,7 @@ import threading
 import time
 import uuid
 
-from aiosignalrcore.hub.errors import HubConnectionError
+from aiosignalrcore.exceptions import ConnectionError
 from tests.base_test_case import BaseTestCase, Urls
 
 
@@ -142,7 +142,7 @@ class TestSendErrorMethod(BaseTestCase):
         self.username = "mandrewcito"
 
         self.assertRaises(
-            HubConnectionError,
+            ConnectionError,
             lambda: self.connection.send("SendMessage", [self.username, self.message]),
         )
 

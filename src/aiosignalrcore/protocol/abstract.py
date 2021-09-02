@@ -4,19 +4,20 @@ from typing import Any, Iterable, Iterator, Tuple, Union
 
 from aiosignalrcore.messages.base_message import BaseMessage
 
-from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
-from ..messages.close_message import CloseMessage  # 7
-from ..messages.completion_message import CompletionMessage  # 3
-from ..messages.handshake.request import HandshakeRequestMessage
-from ..messages.handshake.response import HandshakeResponseMessage
-from ..messages.invocation_message import InvocationMessage  # 1
-from ..messages.message_type import MessageType
-from ..messages.ping_message import PingMessage  # 6
-from ..messages.stream_invocation_message import StreamInvocationMessage  # 4
-from ..messages.stream_item_message import StreamItemMessage  # 2
+# TODO: mapping of message types to classes
+from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage  # 5
+from aiosignalrcore.messages.close_message import CloseMessage  # 7
+from aiosignalrcore.messages.completion_message import CompletionMessage  # 3
+from aiosignalrcore.messages.handshake.request import HandshakeRequestMessage
+from aiosignalrcore.messages.handshake.response import HandshakeResponseMessage
+from aiosignalrcore.messages.invocation_message import InvocationMessage  # 1
+from aiosignalrcore.messages.message_type import MessageType
+from aiosignalrcore.messages.ping_message import PingMessage  # 6
+from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage  # 4
+from aiosignalrcore.messages.stream_item_message import StreamItemMessage  # 2
 
 
-class BaseHubProtocol(ABC):
+class Protocol(ABC):
     def __init__(self, protocol: str, version: int, transfer_format: str, record_separator: str):
         self.protocol = protocol
         self.version = version
@@ -40,7 +41,7 @@ class BaseHubProtocol(ABC):
         if 'type' in dict_message:
             message_type = MessageType(dict_message['type'])
         else:
-            message_type = MessageType.close 
+            message_type = MessageType.close
 
         # FIXME: Copypaste
         dict_message["invocation_id"] = dict_message.get("invocationId", None)

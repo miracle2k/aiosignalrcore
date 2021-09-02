@@ -6,23 +6,23 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import aiohttp
 import websockets
 
+from aiosignalrcore.exceptions import AuthorizationError, HubError
 from aiosignalrcore.helpers import Helpers
-from aiosignalrcore.hub.errors import HubError, UnAuthorizedHubError
 from aiosignalrcore.messages.base_message import BaseMessage
 from aiosignalrcore.messages.ping_message import PingMessage
-from aiosignalrcore.protocol.base_protocol import BaseProtocol
-from aiosignalrcore.transport.base_transport import BaseTransport
-from aiosignalrcore.transport.websockets.connection import ConnectionState
-from aiosignalrcore.transport.websockets.reconnection import ConnectionStateChecker, ReconnectionHandler
+from aiosignalrcore.protocol.abstract import Protocol
+from aiosignalrcore.transport.abstract import Transport
+from aiosignalrcore.transport.abstract import ConnectionState
+# from aiosignalrcore.transport.websockets.reconnection import ConnectionStateChecker, ReconnectionHandler
 
 _logger = logging.getLogger(__name__)
 
 
-class WebsocketTransport(BaseTransport):
+class WebsocketTransport(Transport):
     def __init__(
         self,
         url: str,
-        protocol: BaseProtocol,
+        protocol: Protocol,
         headers: Optional[Dict[str, str]] = None,
         skip_negotiation: bool = False,
         # keep_alive_interval: int = 15,
@@ -90,7 +90,7 @@ class WebsocketTransport(BaseTransport):
                 _logger.debug("Response status code{0}".format(response.status))
 
                 if response.status != 200:
-                    raise HubError(response.status) if response.status != 401 else UnAuthorizedHubError()
+                    raise HubError(response.status) if response.status != 401 else AuthorizationError()
 
                 data = await response.json()
 
@@ -151,4 +151,5 @@ class WebsocketTransport(BaseTransport):
         # if self.reconnection_handler is not None:
         #     self.reconnection_handler.reset()
 
-    async def _wait(self) ->
+    async def _wait(self) -> None:
+        ...

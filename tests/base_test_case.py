@@ -3,7 +3,7 @@ import time
 import unittest
 
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.protocol.messagepack_protocol import MessagepackProtocol
 
 
 class Urls:
@@ -60,7 +60,7 @@ class BaseTestCase(InternalTestCase):
         )
 
         if msgpack:
-            builder.with_hub_protocol(MessagePackHubProtocol())
+            builder.with_hub_protocol(MessagepackProtocol())
 
         hub = builder.build()
         hub.on_open(self.on_open)

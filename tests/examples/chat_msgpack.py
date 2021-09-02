@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("./")
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.protocol.messagepack_protocol import MessagepackProtocol
 
 
 def input_with_default(input_text, default_value):
@@ -26,7 +26,7 @@ client = (
             "intervals": [1, 3, 5, 6, 7, 87, 3],
         }
     )
-    .with_hub_protocol(MessagePackHubProtocol())
+    .with_hub_protocol(MessagepackProtocol())
     .build()
 )
 

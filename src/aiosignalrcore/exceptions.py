@@ -2,11 +2,11 @@ class HubError(OSError):
     pass
 
 
-class UnAuthorizedHubError(HubError):
+class AuthorizationError(HubError):
     pass
 
 
-class HubConnectionError(ValueError):
+class ConnectionError(HubError):
     """Hub connection error"""
 
     pass

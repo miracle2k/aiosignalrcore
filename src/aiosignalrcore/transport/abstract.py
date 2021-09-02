@@ -1,12 +1,21 @@
 from abc import ABC, abstractmethod
+from enum import IntEnum, auto
 from typing import Union
 
 from aiosignalrcore.messages.base_message import BaseMessage
-from aiosignalrcore.protocol.base_protocol import BaseProtocol
+from aiosignalrcore.protocol.abstract import Protocol
 
 
-class BaseTransport(ABC):
-    protocol: BaseProtocol
+class ConnectionState(IntEnum):
+    connecting = auto()
+    connected = auto()
+    reconnecting = auto()
+    disconnected = auto()
+
+
+class Transport(ABC):
+    protocol: Protocol
+    state: ConnectionState
 
     @abstractmethod
     async def run(self) -> None:
