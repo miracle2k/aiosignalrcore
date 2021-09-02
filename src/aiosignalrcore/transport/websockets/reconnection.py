@@ -1,5 +1,4 @@
 import asyncio
-import threading
 import time
 from enum import Enum
 
@@ -57,9 +56,7 @@ class RawReconnectionHandler(ReconnectionHandler):
                 self.attempt_number += 1
                 return self.sleep_time
             else:
-                raise ValueError(
-                    "Max attemps reached {0}".format(self.max_reconnection_attempts)
-                )
+                raise ValueError("Max attemps reached {0}".format(self.max_reconnection_attempts))
         else:  # Infinite reconnect
             return self.sleep_time
 

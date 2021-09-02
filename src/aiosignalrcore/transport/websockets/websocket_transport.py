@@ -1,19 +1,12 @@
 import asyncio
-import ssl
-import threading
-import time
-import traceback
-import uuid
 from functools import partial
 
 import aiohttp
 import websockets
 
 from ...helpers import Helpers
-from ...hub.errors import HubConnectionError, HubError, UnAuthorizedHubError
+from ...hub.errors import HubError, UnAuthorizedHubError
 from ...messages.ping_message import PingMessage
-from ...protocol.json_hub_protocol import JsonHubProtocol
-from ...protocol.messagepack_protocol import MessagePackHubProtocol
 from ..base_transport import BaseTransport
 from .connection import ConnectionState
 from .reconnection import ConnectionStateChecker
@@ -40,9 +33,7 @@ class WebsocketTransport(BaseTransport):
         self.state = ConnectionState.disconnected
         self.handshake_received = asyncio.Event()
         self.verify_ssl = verify_ssl
-        self.connection_checker = ConnectionStateChecker(
-            partial(self.send, PingMessage()), keep_alive_interval
-        )
+        self.connection_checker = ConnectionStateChecker(partial(self.send, PingMessage()), keep_alive_interval)
         self.reconnection_handler = reconnection_handler
         self._ws = None
 
@@ -74,7 +65,7 @@ class WebsocketTransport(BaseTransport):
                         message = await self._ws.recv()
                         await self.on_message(message)
 
-            except websockets.exceptions.ConnectionClosed as ex:
+            except websockets.exceptions.ConnectionClosed:
                 self.state = ConnectionState.disconnected
                 self.handshake_received.clear()
                 await self.on_close()
@@ -84,15 +75,11 @@ class WebsocketTransport(BaseTransport):
         self.logger.debug("Negotiate url:{0}".format(negotiate_url))
 
         async with aiohttp.ClientSession() as session:
-            response = session.post(
-                negotiate_url, headers=self.headers, verify=self.verify_ssl
-            )
+            response = session.post(negotiate_url, headers=self.headers, verify=self.verify_ssl)
         self.logger.debug("Response status code{0}".format(response.status_code))
 
         if response.status_code != 200:
-            raise HubError(
-                response.status_code
-            ) if response.status_code != 401 else UnAuthorizedHubError()
+            raise HubError(response.status_code) if response.status_code != 401 else UnAuthorizedHubError()
 
         data = response.json()
 
@@ -101,14 +88,8 @@ class WebsocketTransport(BaseTransport):
 
         # Azure
         if "url" in data.keys() and "accessToken" in data.keys():
-            Helpers.get_logger().debug(
-                "Azure url, reformat headers, token and url {0}".format(data)
-            )
-            self.url = (
-                data["url"]
-                if data["url"].startswith("ws")
-                else Helpers.http_to_websocket(data["url"])
-            )
+            Helpers.get_logger().debug("Azure url, reformat headers, token and url {0}".format(data))
+            self.url = data["url"] if data["url"].startswith("ws") else Helpers.http_to_websocket(data["url"])
             self.token = data["accessToken"]
             self.headers = {"Authorization": "Bearer " + self.token}
 

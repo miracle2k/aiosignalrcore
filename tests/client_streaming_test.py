@@ -1,13 +1,5 @@
-import logging
-import os
-import time
-import unittest
-import uuid
-from subprocess import PIPE, Popen
-from test.base_test_case import BaseTestCase, Urls
-
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 from aiosignalrcore.subject import Subject
+from tests.base_test_case import BaseTestCase, Urls
 
 
 class TestClientStreamMethod(BaseTestCase):

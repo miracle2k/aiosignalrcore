@@ -1,14 +1,8 @@
 import logging
-import os
 import threading
-import time
-import unittest
-import uuid
-from subprocess import PIPE, Popen
-from test.base_test_case import BaseTestCase, Urls
 
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
-from aiosignalrcore.subject import Subject
+from tests.base_test_case import BaseTestCase
 
 
 class TestClientStreamMethod(BaseTestCase):
@@ -20,10 +14,7 @@ class TestClientStreamMethod(BaseTestCase):
 
     def test_start(self):
         connection = (
-            HubConnectionBuilder()
-            .with_url(self.server_url, options={"verify_ssl": False})
-            .configure_logging(logging.ERROR)
-            .build()
+            HubConnectionBuilder().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
         )
 
         _lock = threading.Lock()

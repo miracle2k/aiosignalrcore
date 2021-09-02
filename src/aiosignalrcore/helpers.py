@@ -8,11 +8,7 @@ class Helpers:
         logger = Helpers.get_logger()
         if handler is None:
             handler = logging.StreamHandler()
-            handler.setFormatter(
-                logging.Formatter(
-                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                )
-            )
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
             handler.setLevel(level)
         logger.addHandler(handler)
         logger.setLevel(level)
@@ -31,9 +27,7 @@ class Helpers:
         return parts[0], parts[1]
 
     @staticmethod
-    def replace_scheme(
-        url, root_scheme, source, secure_source, destination, secure_destination
-    ):
+    def replace_scheme(url, root_scheme, source, secure_source, destination, secure_destination):
         url_parts = parse.urlsplit(url)
 
         if root_scheme not in url_parts.scheme:
@@ -64,11 +58,7 @@ class Helpers:
 
         url_parts = url_parts._replace(path=url_parts.path + negotiate_suffix)
 
-        return (
-            parse.urlunsplit(url_parts)
-            if querystring == ""
-            else parse.urlunsplit(url_parts) + "?" + querystring
-        )
+        return parse.urlunsplit(url_parts) if querystring == "" else parse.urlunsplit(url_parts) + "?" + querystring
 
     @staticmethod
     def encode_connection_id(url, id):
@@ -76,8 +66,6 @@ class Helpers:
         query_string_parts = parse.parse_qs(url_parts.query)
         query_string_parts["id"] = id
 
-        url_parts = url_parts._replace(
-            query=parse.urlencode(query_string_parts, doseq=True)
-        )
+        url_parts = url_parts._replace(query=parse.urlencode(query_string_parts, doseq=True))
 
         return Helpers.http_to_websocket(parse.urlunsplit(url_parts))

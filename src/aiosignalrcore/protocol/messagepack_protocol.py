@@ -31,9 +31,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
     ]
 
     def __init__(self):
-        super(MessagePackHubProtocol, self).__init__(
-            "messagepack", 1, "Text", chr(0x1E)
-        )
+        super(MessagePackHubProtocol, self).__init__("messagepack", 1, "Text", chr(0x1E))
         self.logger = Helpers.get_logger()
 
     def parse_messages(self, raw):
@@ -54,16 +52,8 @@ class MessagePackHubProtocol(BaseHubProtocol):
     def decode_handshake(self, raw_message):
         try:
             has_various_messages = 0x1E in raw_message
-            handshake_data = (
-                raw_message[0 : raw_message.index(0x1E)]
-                if has_various_messages
-                else raw_message
-            )
-            messages = (
-                self.parse_messages(raw_message[raw_message.index(0x1E) + 1 :])
-                if has_various_messages
-                else []
-            )
+            handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
+            messages = self.parse_messages(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
             data = json.loads(handshake_data)
             return HandshakeResponseMessage(data.get("error", None)), messages
         except Exception as ex:
@@ -105,9 +95,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
 
         if raw[0] == 1:  # InvocationMessage
             if len(raw[5]) > 0:
-                return InvocationClientStreamMessage(
-                    headers=raw[1], stream_ids=raw[5], target=raw[3], arguments=raw[4]
-                )
+                return InvocationClientStreamMessage(headers=raw[1], stream_ids=raw[5], target=raw[3], arguments=raw[4])
             else:
                 return InvocationMessage(
                     headers=raw[1],
@@ -122,26 +110,18 @@ class MessagePackHubProtocol(BaseHubProtocol):
         elif raw[0] == 3:  # CompletionMessage
             result_kind = raw[3]
             if result_kind == 1:
-                return CompletionMessage(
-                    headers=raw[1], invocation_id=raw[2], result=None, error=raw[4]
-                )
+                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=None, error=raw[4])
 
             elif result_kind == 2:
-                return CompletionMessage(
-                    headers=raw[1], invocation_id=raw[2], result=None, error=None
-                )
+                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=None, error=None)
 
             elif result_kind == 3:
-                return CompletionMessage(
-                    headers=raw[1], invocation_id=raw[2], result=raw[4], error=None
-                )
+                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=raw[4], error=None)
             else:
                 raise Exception("Unknown result kind.")
 
         elif raw[0] == 4:  # StreamInvocationMessage
-            return StreamInvocationMessage(
-                headers=raw[1], invocation_id=raw[2], target=raw[3], arguments=raw[4]
-            )  # stream_id missing?
+            return StreamInvocationMessage(headers=raw[1], invocation_id=raw[2], target=raw[3], arguments=raw[4])  # stream_id missing?
 
         elif raw[0] == 5:  # CancelInvocationMessage
             return CancelInvocationMessage(headers=raw[1], invocation_id=raw[2])

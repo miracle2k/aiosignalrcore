@@ -31,10 +31,7 @@ class Subject(object):
             ValueError: if object is not valid, exception will be raised
         """
         if self.connection is None or self.target is None or self.invocation_id is None:
-            raise ValueError(
-                "subject must be passed as an agument to a send function. "
-                + "hub_connection.send([method],[subject]"
-            )
+            raise ValueError("subject must be passed as an agument to a send function. " + "hub_connection.send([method],[subject]")
 
     def next(self, item: Any):
         """Send next item to the server
@@ -50,14 +47,10 @@ class Subject(object):
         """Starts streaming"""
         self.check()
         with self.lock:
-            self.connection.transport.send(
-                InvocationClientStreamMessage([self.invocation_id], self.target, [])
-            )
+            self.connection.transport.send(InvocationClientStreamMessage([self.invocation_id], self.target, []))
 
     def complete(self):
         """Finish streaming"""
         self.check()
         with self.lock:
-            self.connection.transport.send(
-                CompletionClientStreamMessage(self.invocation_id)
-            )
+            self.connection.transport.send(CompletionClientStreamMessage(self.invocation_id))

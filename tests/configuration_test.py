@@ -1,9 +1,9 @@
 import logging
-from test.base_test_case import BaseTestCase, Urls
 
 import websocket
 
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from tests.base_test_case import BaseTestCase
 
 
 class TestConfiguration(BaseTestCase):
@@ -24,9 +24,7 @@ class TestConfiguration(BaseTestCase):
 
     def test_bad_options(self):
         with self.assertRaises(TypeError):
-            self.connection = HubConnectionBuilder().with_url(
-                self.server_url, options=["ssl", True]
-            )
+            self.connection = HubConnectionBuilder().with_url(self.server_url, options=["ssl", True])
 
     def test_auth_configured(self):
         with self.assertRaises(TypeError):
@@ -39,7 +37,7 @@ class TestConfiguration(BaseTestCase):
             )
             hub.has_auth_configured = True
             hub.options["access_token_factory"] = ""
-            conn = hub.build()
+            _ = hub.build()
 
     def test_enable_trace(self):
         hub = (

@@ -1,15 +1,12 @@
 import logging
-import os
 import threading
-import time
-import unittest
 import uuid
-from test.base_test_case import BaseTestCase, Urls
 
 import requests
 
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from tests.base_test_case import BaseTestCase, Urls
 
 
 class TestSendAuthMethod(BaseTestCase):

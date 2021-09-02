@@ -1,13 +1,9 @@
-import logging
-import os
 import threading
 import time
-import unittest
 import uuid
-from test.base_test_case import BaseTestCase, Urls
 
-from aiosignalrcore.hub.errors import HubConnectionError, HubError
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub.errors import HubConnectionError
+from tests.base_test_case import BaseTestCase, Urls
 
 
 class TestSendException(BaseTestCase):
@@ -107,9 +103,7 @@ class TestSendMethod(BaseTestCase):
         self.received = False
         _lock = threading.Lock()
         _lock.acquire()
-        self.connection.send(
-            "SendMessage", [self.username, self.message], lambda m: _lock.release()
-        )
+        self.connection.send("SendMessage", [self.username, self.message], lambda m: _lock.release())
         self.assertTrue(_lock.acquire(timeout=10))
         del _lock
 
@@ -158,7 +152,7 @@ class TestSendErrorMethod(BaseTestCase):
 
         self.received = False
         self.connection.send("SendMessage", [self.username, self.message])
-        t0 = time.time()
+        _ = time.time()
         while not self.received:
             time.sleep(0.1)
         self.assertTrue(self.received)

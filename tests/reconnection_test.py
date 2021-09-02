@@ -1,18 +1,11 @@
 import logging
-import os
 import threading
 import time
-import unittest
-import uuid
-from subprocess import PIPE, Popen
-from test.base_test_case import BaseTestCase, Urls
 
 from aiosignalrcore.hub.errors import HubConnectionError
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
-from aiosignalrcore.transport.websockets.reconnection import (
-    IntervalReconnectionHandler,
-    RawReconnectionHandler,
-)
+from aiosignalrcore.transport.websockets.reconnection import IntervalReconnectionHandler, RawReconnectionHandler
+from tests.base_test_case import BaseTestCase
 
 
 class TestReconnectMethods(BaseTestCase):
@@ -25,9 +18,7 @@ class TestReconnectMethods(BaseTestCase):
             HubConnectionBuilder()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.ERROR)
-            .with_automatic_reconnect(
-                {"type": "interval", "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10]}
-            )
+            .with_automatic_reconnect({"type": "interval", "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10]})
             .build()
         )
         _lock = threading.Lock()
@@ -64,10 +55,7 @@ class TestReconnectMethods(BaseTestCase):
 
     def test_no_reconnect(self):
         connection = (
-            HubConnectionBuilder()
-            .with_url(self.server_url, options={"verify_ssl": False})
-            .configure_logging(logging.ERROR)
-            .build()
+            HubConnectionBuilder().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
         )
 
         _lock = threading.Lock()
@@ -88,9 +76,7 @@ class TestReconnectMethods(BaseTestCase):
 
         time.sleep(10)
 
-        self.assertRaises(
-            HubConnectionError, lambda: connection.send("DisconnectMe", [])
-        )
+        self.assertRaises(HubConnectionError, lambda: connection.send("DisconnectMe", []))
 
         connection.stop()
         del _lock
@@ -124,9 +110,7 @@ class TestReconnectMethods(BaseTestCase):
             HubConnectionBuilder()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.ERROR)
-            .with_automatic_reconnect(
-                {"type": "raw", "keep_alive_interval": 10, "max_attempts": 4}
-            )
+            .with_automatic_reconnect({"type": "raw", "keep_alive_interval": 10, "max_attempts": 4})
             .build()
         )
 

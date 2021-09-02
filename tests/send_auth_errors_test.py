@@ -1,15 +1,10 @@
 import logging
-import os
-import time
-import unittest
-import uuid
-from subprocess import PIPE, Popen
-from test.base_test_case import BaseTestCase, Urls
 
 import requests
 
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from tests.base_test_case import BaseTestCase, Urls
 
 
 class TestSendAuthErrorMethod(BaseTestCase):
@@ -55,9 +50,7 @@ class TestSendAuthErrorMethod(BaseTestCase):
         self.connection = builder.build()
         self.connection.on_open(self.on_open)
         self.connection.on_close(self.on_close)
-        self.assertRaises(
-            requests.exceptions.ConnectionError, lambda: self.connection.start()
-        )
+        self.assertRaises(requests.exceptions.ConnectionError, lambda: self.connection.start())
 
 
 class TestSendNoSslAuthMethod(TestSendAuthErrorMethod):

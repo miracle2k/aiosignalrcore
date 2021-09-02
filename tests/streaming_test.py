@@ -1,12 +1,6 @@
-import logging
-import os
 import time
-import unittest
-import uuid
-from subprocess import PIPE, Popen
-from test.base_test_case import BaseTestCase, Urls
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from tests.base_test_case import BaseTestCase, Urls
 
 
 class TestSendMethod(BaseTestCase):
@@ -49,9 +43,7 @@ class TestSendMethod(BaseTestCase):
 
         self.assertRaises(
             ValueError,
-            lambda: my_stream.subscribe(
-                {"next": "", "complete": 1, "error": []}  # TestcaseFail
-            ),
+            lambda: my_stream.subscribe({"next": "", "complete": 1, "error": []}),  # TestcaseFail
         )
 
 
