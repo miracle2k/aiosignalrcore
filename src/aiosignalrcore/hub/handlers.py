@@ -3,7 +3,7 @@ from typing import Callable
 from ..helpers import Helpers
 
 
-class StreamHandler(object):
+class StreamHandler:
     def __init__(self, event: str, invocation_id: str):
         self.event = event
         self.invocation_id = invocation_id
@@ -12,7 +12,7 @@ class StreamHandler(object):
         self.complete_callback = lambda _: self.logger.warning("next complete handler fired, no callback configured")
         self.error_callback = lambda _: self.logger.warning("next error handler fired, no callback configured")
 
-    def subscribe(self, subscribe_callbacks: dict):
+    def subscribe(self, subscribe_callbacks: dict) -> None:
         error = " subscribe object must be a dict like {0}".format({"next": None, "complete": None, "error": None})
 
         if subscribe_callbacks is None or type(subscribe_callbacks) is not dict:
@@ -33,7 +33,7 @@ class StreamHandler(object):
         self.error_callback = subscribe_callbacks["error"]
 
 
-class InvocationHandler(object):
+class InvocationHandler:
     def __init__(self, invocation_id: str, complete_callback: Callable):
         self.invocation_id = invocation_id
         self.complete_callback = complete_callback

@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Callable
+from typing import Any, Callable, List, Union
 
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
@@ -65,7 +65,7 @@ class BaseHubConnection:
         _logger.debug("Handler registered started {0}".format(event))
         self.handlers.append((event, callback_function))
 
-    async def send(self, method, arguments, on_invocation=None):
+    async def send(self, method: str, arguments: Union[Subject, List[Subject]], on_invocation=None) -> None:
         """Sends a message
 
         Args:
@@ -78,10 +78,7 @@ class BaseHubConnection:
             HubConnectionError: If hub is not ready to send
             TypeError: If arguments are invalid list or Subject
         """
-        if type(arguments) is not list and type(arguments) is not Subject:
-            raise TypeError("Arguments of a message must be a list or subject")
-
-        if type(arguments) is list:
+        if isinstance(arguments, list):
             message = InvocationMessage(str(uuid.uuid4()), method, arguments, headers=self.headers)
 
             if on_invocation:
@@ -89,10 +86,13 @@ class BaseHubConnection:
 
             await self.transport.send(message)
 
-        if type(arguments) is Subject:
+        elif isinstance(arguments, Subject):
             arguments.connection = self
             arguments.target = method
             arguments.start()
+        
+        else:
+            raise NotImplementedError
 
     async def on_message(self, messages):
         for message in messages:
