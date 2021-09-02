@@ -1,11 +1,15 @@
 import logging
 import uuid
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from aiosignalrcore.hub.handlers import InvocationHandler, StreamHandler
+from aiosignalrcore.messages.base_message import BaseMessage
+from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage
+from aiosignalrcore.messages.completion_message import CompletionMessage
 from aiosignalrcore.messages.invocation_message import InvocationMessage
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
+from aiosignalrcore.messages.stream_item_message import StreamItemMessage
 from aiosignalrcore.subject import Subject
 from aiosignalrcore.transport.websockets.websocket_transport import WebsocketTransport
 
@@ -16,9 +20,8 @@ class BaseHubConnection:
     # FIXME: protocol type
     def __init__(self, url: str, protocol, headers: Optional[Dict[str, str]] = None, **kwargs) -> None:
         self.headers = headers or {}
-        # FIXME: Whyyyy?
         self.handlers: List[Tuple[str, Callable]] = []
-        self.stream_handlers: List[InvocationHandler] = []
+        self.stream_handlers: List[Union[StreamHandler, InvocationHandler]] = []
         self._on_error = lambda error: _logger.info("on_error not defined {0}".format(error))
         self.transport = WebsocketTransport(url=url, protocol=protocol, headers=headers, on_message=self.on_message, **kwargs)
 
@@ -95,86 +98,35 @@ class BaseHubConnection:
         else:
             raise NotImplementedError
 
-    async def on_message(self, messages):
+    async def on_message(self, messages: Iterable[BaseMessage]) -> None:
         for message in messages:
+            # FIXME: When?
             if message.type == MessageType.invocation_binding_failure:
                 _logger.error(message)
                 self._on_error(message)
-                continue
 
             elif message.type == MessageType.ping:
-                continue
+                pass
 
-            elif message.type == MessageType.invocation:
-                fired_handlers = list(filter(lambda h: h[0] == message.target, self.handlers))
-                if len(fired_handlers) == 0:
-                    _logger.warning("event '{0}' hasn't fire any handler".format(message.target))
-                for _, handler in fired_handlers:
-                    await handler(message.arguments)
+            elif isinstance(message, InvocationMessage):
+                await self._on_invocation_message(message)
 
             elif message.type == MessageType.close:
                 _logger.info("Close message received from server")
                 return
 
-            elif message.type == MessageType.completion:
-                if message.error is not None and len(message.error) > 0:
-                    self._on_error(message)
+            elif isinstance(message, CompletionMessage):
+                await self._on_completion_message(message)
 
-                # Send callbacks
-                fired_handlers = list(
-                    filter(
-                        lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers,
-                    )
-                )
+            elif isinstance(message, StreamItemMessage):
+                await self._on_stream_item_message(message)
 
-                # Stream callbacks
-                for handler in fired_handlers:
-                    handler.complete_callback(message)
-
-                # unregister handler
-                self.stream_handlers = list(
-                    filter(
-                        lambda h: h.invocation_id != message.invocation_id,
-                        self.stream_handlers,
-                    )
-                )
-
-            elif message.type == MessageType.stream_item:
-                fired_handlers = list(
-                    filter(
-                        lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers,
-                    )
-                )
-                if len(fired_handlers) == 0:
-                    _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
-                for handler in fired_handlers:
-                    handler.next_callback(message.item)
-
-            elif message.type == MessageType.stream_invocation:
+            elif isinstance(message, StreamInvocationMessage):
                 pass
 
-            elif message.type == MessageType.cancel_invocation:
-                fired_handlers = list(
-                    filter(
-                        lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers,
-                    )
-                )
-                if len(fired_handlers) == 0:
-                    _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
+            elif isinstance(message, CancelInvocationMessage):
+                await self._on_cancel_invocation_message(message)
 
-                for handler in fired_handlers:
-                    handler.error_callback(message)
-
-                # unregister handler
-                self.stream_handlers = list(
-                    filter(
-                        lambda h: h.invocation_id != message.invocation_id,
-                        self.stream_handlers,
-                    )
-                )
             else:
                 raise NotImplementedError
 
@@ -200,3 +152,69 @@ class BaseHubConnection:
         self.stream_handlers.append(stream_obj)
         await self.transport.send(StreamInvocationMessage(invocation_id, event, event_params, headers=self.headers))
         return stream_obj
+
+    async def _on_invocation_message(self, message: InvocationMessage) -> None:
+        fired_handlers = list(filter(lambda h: h[0] == message.target, self.handlers))
+        if len(fired_handlers) == 0:
+            _logger.warning("event '{0}' hasn't fire any handler".format(message.target))
+        for _, handler in fired_handlers:
+            await handler(message.arguments)
+
+    async def _on_completion_message(self, message: CompletionMessage) -> None:
+        if message.error is not None and len(message.error) > 0:
+            self._on_error(message)
+
+        # Send callbacks
+        fired_stream_handlers = list(
+            filter(
+                lambda h: h.invocation_id == message.invocation_id,
+                self.stream_handlers,
+            )
+        )
+
+        # Stream callbacks
+        for stream_handler in fired_stream_handlers:
+            stream_handler.complete_callback(message)
+
+        # unregister handler
+        self.stream_handlers = list(
+            filter(
+                lambda h: h.invocation_id != message.invocation_id,
+                self.stream_handlers,
+            )
+        )
+
+    async def _on_stream_item_message(self, message: StreamItemMessage) -> None:
+        fired_handlers = list(
+            filter(
+                lambda h: h.invocation_id == message.invocation_id,
+                self.stream_handlers,
+            )
+        )
+        if len(fired_handlers) == 0:
+            _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
+        for handler in fired_handlers:
+            assert isinstance(handler, StreamHandler)
+            handler.next_callback(message.item)
+
+    async def _on_cancel_invocation_message(self, message: CancelInvocationMessage) -> None:
+        fired_handlers = list(
+            filter(
+                lambda h: h.invocation_id == message.invocation_id,
+                self.stream_handlers,
+            )
+        )
+        if len(fired_handlers) == 0:
+            _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
+
+        for handler in fired_handlers:
+            assert isinstance(handler, StreamHandler)
+            handler.error_callback(message)
+
+        # unregister handler
+        self.stream_handlers = list(
+            filter(
+                lambda h: h.invocation_id != message.invocation_id,
+                self.stream_handlers,
+            )
+        )

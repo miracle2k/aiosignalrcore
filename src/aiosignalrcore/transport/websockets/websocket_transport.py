@@ -1,30 +1,31 @@
 import asyncio
 from functools import partial
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 import websockets
 
-from ...helpers import Helpers
-from ...hub.errors import HubError, UnAuthorizedHubError
-from ...messages.ping_message import PingMessage
-from ..base_transport import BaseTransport
-from .connection import ConnectionState
-from .reconnection import ConnectionStateChecker
+from aiosignalrcore.helpers import Helpers
+from aiosignalrcore.hub.errors import HubError, UnAuthorizedHubError
+from aiosignalrcore.messages.ping_message import PingMessage
+from aiosignalrcore.transport.base_transport import BaseTransport
+from aiosignalrcore.transport.websockets.connection import ConnectionState
+from aiosignalrcore.transport.websockets.reconnection import ConnectionStateChecker, ReconnectionHandler
 
 
 class WebsocketTransport(BaseTransport):
     def __init__(
         self,
         url: str,
-        headers={},
-        keep_alive_interval=15,
-        reconnection_handler=None,
-        verify_ssl=False,
-        skip_negotiation=False,
-        enable_trace=False,
+        headers: Optional[Dict[str, str]] = None,
+        keep_alive_interval: int = 15,
+        reconnection_handler: Optional[ReconnectionHandler] = None,
+        verify_ssl: bool = False,
+        skip_negotiation: bool = False,
+        enable_trace: bool = False,
         **kwargs,
     ):
-        super(WebsocketTransport, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.enable_trace = enable_trace
         self.skip_negotiation = skip_negotiation
         self.url = url
@@ -35,9 +36,9 @@ class WebsocketTransport(BaseTransport):
         self.verify_ssl = verify_ssl
         self.connection_checker = ConnectionStateChecker(partial(self.send, PingMessage()), keep_alive_interval)
         self.reconnection_handler = reconnection_handler
-        self._ws = None
+        self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
-    async def run(self):
+    async def run(self) -> None:
         if not self.skip_negotiation:
             await self.negotiate()
 
@@ -111,7 +112,7 @@ class WebsocketTransport(BaseTransport):
         if self._on_close is not None and callable(self._on_close):
             await self._on_close()
 
-    async def on_message(self, raw_message):
+    async def on_message(self, raw_message) -> List[Any]:
         self.logger.debug("Message received{0}".format(raw_message))
         if not self.handshake_received.is_set():
             messages = self.evaluate_handshake(raw_message)
@@ -126,7 +127,7 @@ class WebsocketTransport(BaseTransport):
 
         return await self._on_message(self.protocol.parse_messages(raw_message))
 
-    async def send(self, message):
+    async def send(self, message) -> None:
         self.logger.debug("Sending message {0}".format(message))
         await asyncio.wait_for(self.handshake_received.wait(), timeout=10)
 

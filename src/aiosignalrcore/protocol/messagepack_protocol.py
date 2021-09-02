@@ -1,19 +1,22 @@
 import json
+import logging
 
 import msgpack  # type: ignore
 
-from ..helpers import Helpers
-from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
-from ..messages.close_message import CloseMessage  # 7
-from ..messages.completion_message import CompletionMessage  # 3
-from ..messages.handshake.request import HandshakeRequestMessage
-from ..messages.handshake.response import HandshakeResponseMessage
-from ..messages.invocation_message import InvocationClientStreamMessage  # 1
-from ..messages.invocation_message import InvocationMessage
-from ..messages.ping_message import PingMessage  # 6
-from ..messages.stream_invocation_message import StreamInvocationMessage  # 4
-from ..messages.stream_item_message import StreamItemMessage  # 2
-from .base_hub_protocol import BaseHubProtocol
+from aiosignalrcore.messages.base_message import BaseMessage  # type: ignore
+from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage  # 5
+from aiosignalrcore.messages.close_message import CloseMessage  # 7
+from aiosignalrcore.messages.completion_message import CompletionMessage  # 3
+from aiosignalrcore.messages.handshake.request import HandshakeRequestMessage
+from aiosignalrcore.messages.handshake.response import HandshakeResponseMessage
+from aiosignalrcore.messages.invocation_message import InvocationClientStreamMessage  # 1
+from aiosignalrcore.messages.invocation_message import InvocationMessage
+from aiosignalrcore.messages.ping_message import PingMessage  # 6
+from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage  # 4
+from aiosignalrcore.messages.stream_item_message import StreamItemMessage  # 2
+from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
+
+_logger = logging.getLogger(__name__)
 
 
 class MessagePackHubProtocol(BaseHubProtocol):
@@ -31,8 +34,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
     ]
 
     def __init__(self):
-        super(MessagePackHubProtocol, self).__init__("messagepack", 1, "Text", chr(0x1E))
-        self.logger = Helpers.get_logger()
+        super().__init__("messagepack", 1, "Text", chr(0x1E))
 
     def parse_messages(self, raw):
         try:
@@ -45,8 +47,8 @@ class MessagePackHubProtocol(BaseHubProtocol):
                 message = self._decode_message(values)
                 messages.append(message)
         except Exception as ex:
-            Helpers.get_logger().error("Parse messages Error {0}".format(ex))
-            Helpers.get_logger().error("raw msg '{0}'".format(raw))
+            _logger.error("Parse messages Error {0}".format(ex))
+            _logger.error("raw msg '{0}'".format(raw))
         return messages
 
     def decode_handshake(self, raw_message):
@@ -57,8 +59,8 @@ class MessagePackHubProtocol(BaseHubProtocol):
             data = json.loads(handshake_data)
             return HandshakeResponseMessage(data.get("error", None)), messages
         except Exception as ex:
-            Helpers.get_logger().error(raw_message)
-            Helpers.get_logger().error(ex)
+            _logger.error(raw_message)
+            _logger.error(ex)
             raise ex
 
     def encode(self, message):
@@ -83,7 +85,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
                     result.append(getattr(message, attribute))
         return result
 
-    def _decode_message(self, raw):
+    def _decode_message(self, raw) -> BaseMessage:
         # {} {"error"}
         # [1, Headers, InvocationId, Target, [Arguments], [StreamIds]]
         # [2, Headers, InvocationId, Item]
