@@ -4,7 +4,7 @@ import time
 
 from aiosignalrcore.exceptions import ConnectionError
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.transport.websockets.reconnection import IntervalReconnectionHandler, RawReconnectionHandler
+from aiosignalrcore.transport.websocket.reconnection import IntervalReconnectionHandler, RawReconnectionHandler
 from tests.base_test_case import BaseTestCase
 
 

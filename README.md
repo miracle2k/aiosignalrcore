@@ -23,7 +23,7 @@ import asyncio
 import logging
 from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.messages.completion_message import CompletionMessage
-from aiosignalrcore.transport.websockets.connection import ConnectionState
+from aiosignalrcore.transport.websocket import ConnectionState
 
 
 client= (

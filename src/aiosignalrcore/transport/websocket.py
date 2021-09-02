@@ -13,7 +13,7 @@ from aiosignalrcore.messages.ping_message import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.transport.abstract import Transport
 from aiosignalrcore.transport.abstract import ConnectionState
-# from aiosignalrcore.transport.websockets.reconnection import ConnectionStateChecker, ReconnectionHandler
+# from aiosignalrcore.transport.websocket.reconnection import ConnectionStateChecker, ReconnectionHandler
 
 _logger = logging.getLogger(__name__)
 

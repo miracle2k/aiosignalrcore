@@ -191,12 +191,12 @@ client= SignalRClient()\
 ## Configure messagepack
 
 ```python
-from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from aiosignalrcore.protocol.messagepack_protocol import MessagepackProtocol
 
 SignalRClient()\
             .with_url(self.server_url, options={"verify_ssl":False})\
                 ... 
-            .with_hub_protocol(MessagePackHubProtocol())\
+            .with_hub_protocol(MessagepackProtocol())\
                 ...
             .build()
 ```

@@ -13,7 +13,7 @@ from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMe
 from aiosignalrcore.messages.stream_item_message import StreamItemMessage
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.subject import Subject
-from aiosignalrcore.transport.websockets import WebsocketTransport
+from aiosignalrcore.transport.websocket import WebsocketTransport
 
 from aiosignalrcore.protocol.json import JsonProtocol
 
