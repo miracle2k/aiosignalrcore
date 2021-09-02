@@ -1,7 +1,7 @@
 import logging
 from typing import Callable, Dict, Optional
 
-from .base_hub_connection import BaseHubConnection
+from aiosignalrcore.hub.base_hub_connection import BaseHubConnection
 
 _logger = logging.getLogger(__name__)
 

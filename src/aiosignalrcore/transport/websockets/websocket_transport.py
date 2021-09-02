@@ -15,7 +15,7 @@ from .reconnection import ConnectionStateChecker
 class WebsocketTransport(BaseTransport):
     def __init__(
         self,
-        url="",
+        url: str,
         headers={},
         keep_alive_interval=15,
         reconnection_handler=None,

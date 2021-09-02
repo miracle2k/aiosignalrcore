@@ -1,7 +1,7 @@
+import logging
 import uuid
 from typing import Callable
 
-from aiosignalrcore.helpers import Helpers
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
 
@@ -10,21 +10,22 @@ from ..subject import Subject
 from ..transport.websockets.websocket_transport import WebsocketTransport
 from .handlers import InvocationHandler, StreamHandler
 
+_logger = logging.getLogger(__name__)
+
 
 class BaseHubConnection:
-    def __init__(self, url, protocol, headers={}, **kwargs):
+    def __init__(self, url: str, protocol, headers={}, **kwargs) -> None:
         self.headers = headers
-        self.logger = Helpers.get_logger()
         self.handlers = []
         self.stream_handlers = []
-        self._on_error = lambda error: self.logger.info("on_error not defined {0}".format(error))
+        self._on_error = lambda error: _logger.info("on_error not defined {0}".format(error))
         self.transport = WebsocketTransport(url=url, protocol=protocol, headers=headers, on_message=self.on_message, **kwargs)
 
-    async def run(self):
-        self.logger.debug("Connection started")
+    async def run(self) -> None:
+        _logger.debug("Connection started")
         return await self.transport.run()
 
-    def on_close(self, callback):
+    def on_close(self, callback: Callable) -> None:
         """Configures on_close connection callback.
             It will be raised on connection closed event
         connection.on_close(lambda: print("connection closed"))
@@ -33,7 +34,7 @@ class BaseHubConnection:
         """
         self.transport.on_close_callback(callback)
 
-    def on_open(self, callback):
+    def on_open(self, callback: Callable) -> None:
         """Configures on_open connection callback.
             It will be raised on connection open event
         connection.on_open(lambda: print(
@@ -43,7 +44,7 @@ class BaseHubConnection:
         """
         self.transport.on_open_callback(callback)
 
-    def on_error(self, callback):
+    def on_error(self, callback: Callable) -> None:
         """Configures on_error connection callback. It will be raised
             if any hub method throws an exception.
         connection.on_error(lambda data:
@@ -54,14 +55,14 @@ class BaseHubConnection:
         """
         self._on_error = callback
 
-    def on(self, event, callback_function: Callable):
+    def on(self, event: str, callback_function: Callable) -> None:
         """Register a callback on the specified event
         Args:
             event (string):  Event name
             callback_function (Function): callback function,
                 arguments will be binded
         """
-        self.logger.debug("Handler registered started {0}".format(event))
+        _logger.debug("Handler registered started {0}".format(event))
         self.handlers.append((event, callback_function))
 
     async def send(self, method, arguments, on_invocation=None):
@@ -96,25 +97,25 @@ class BaseHubConnection:
     async def on_message(self, messages):
         for message in messages:
             if message.type == MessageType.invocation_binding_failure:
-                self.logger.error(message)
+                _logger.error(message)
                 self._on_error(message)
                 continue
 
-            if message.type == MessageType.ping:
+            elif message.type == MessageType.ping:
                 continue
 
-            if message.type == MessageType.invocation:
+            elif message.type == MessageType.invocation:
                 fired_handlers = list(filter(lambda h: h[0] == message.target, self.handlers))
                 if len(fired_handlers) == 0:
-                    self.logger.warning("event '{0}' hasn't fire any handler".format(message.target))
+                    _logger.warning("event '{0}' hasn't fire any handler".format(message.target))
                 for _, handler in fired_handlers:
                     await handler(message.arguments)
 
-            if message.type == MessageType.close:
-                self.logger.info("Close message received from server")
+            elif message.type == MessageType.close:
+                _logger.info("Close message received from server")
                 return
 
-            if message.type == MessageType.completion:
+            elif message.type == MessageType.completion:
                 if message.error is not None and len(message.error) > 0:
                     self._on_error(message)
 
@@ -138,7 +139,7 @@ class BaseHubConnection:
                     )
                 )
 
-            if message.type == MessageType.stream_item:
+            elif message.type == MessageType.stream_item:
                 fired_handlers = list(
                     filter(
                         lambda h: h.invocation_id == message.invocation_id,
@@ -146,14 +147,14 @@ class BaseHubConnection:
                     )
                 )
                 if len(fired_handlers) == 0:
-                    self.logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
+                    _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
                 for handler in fired_handlers:
                     handler.next_callback(message.item)
 
-            if message.type == MessageType.stream_invocation:
+            elif message.type == MessageType.stream_invocation:
                 pass
 
-            if message.type == MessageType.cancel_invocation:
+            elif message.type == MessageType.cancel_invocation:
                 fired_handlers = list(
                     filter(
                         lambda h: h.invocation_id == message.invocation_id,
@@ -161,7 +162,7 @@ class BaseHubConnection:
                     )
                 )
                 if len(fired_handlers) == 0:
-                    self.logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
+                    _logger.warning("id '{0}' hasn't fire any stream handler".format(message.invocation_id))
 
                 for handler in fired_handlers:
                     handler.error_callback(message)
@@ -173,6 +174,8 @@ class BaseHubConnection:
                         self.stream_handlers,
                     )
                 )
+            else:
+                raise NotImplementedError
 
     async def stream(self, event, event_params):
         """Starts server streaming
