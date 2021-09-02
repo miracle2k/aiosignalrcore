@@ -24,13 +24,15 @@ black:
 	poetry run black src tests
 
 flake:
-	poetry run flakehell lint src tests
+	# poetry run flakehell lint src tests
+	poetry run flakehell lint src
 
 mypy:
-	poetry run mypy src tests
+	# poetry run mypy src tests
+	poetry run mypy src
 
 test:
-	poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
+	# poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
 
 cover:
 	poetry run diff-cover coverage.xml
