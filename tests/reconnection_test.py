@@ -3,7 +3,7 @@ import threading
 import time
 
 from aiosignalrcore.hub.errors import HubConnectionError
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.transport.websockets.reconnection import IntervalReconnectionHandler, RawReconnectionHandler
 from tests.base_test_case import BaseTestCase
 
@@ -15,7 +15,7 @@ class TestReconnectMethods(BaseTestCase):
 
     def test_reconnect_interval_config(self):
         connection = (
-            HubConnectionBuilder()
+            SignalRClient()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.ERROR)
             .with_automatic_reconnect({"type": "interval", "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10]})
@@ -39,7 +39,7 @@ class TestReconnectMethods(BaseTestCase):
 
     def test_reconnect_interval(self):
         connection = (
-            HubConnectionBuilder()
+            SignalRClient()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.ERROR)
             .with_automatic_reconnect(
@@ -54,9 +54,7 @@ class TestReconnectMethods(BaseTestCase):
         self.reconnect_test(connection)
 
     def test_no_reconnect(self):
-        connection = (
-            HubConnectionBuilder().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
-        )
+        connection = SignalRClient().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
 
         _lock = threading.Lock()
 
@@ -107,7 +105,7 @@ class TestReconnectMethods(BaseTestCase):
 
     def test_raw_reconnection(self):
         connection = (
-            HubConnectionBuilder()
+            SignalRClient()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.ERROR)
             .with_automatic_reconnect({"type": "raw", "keep_alive_interval": 10, "max_attempts": 4})

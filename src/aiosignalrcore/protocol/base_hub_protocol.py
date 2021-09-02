@@ -1,6 +1,8 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Tuple
+from typing import Any, Iterable, Iterator, Tuple, Union
+
+from aiosignalrcore.messages.base_message import BaseMessage
 
 from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
 from ..messages.close_message import CloseMessage  # 7
@@ -22,17 +24,25 @@ class BaseHubProtocol(ABC):
         self.record_separator = record_separator
 
     @abstractmethod
-    def parse_messages(self, raw_message: str):
+    def parse_messages(self, raw_message: Union[str, bytes]) -> Iterable[BaseMessage]:
         ...
 
     @abstractmethod
-    def write_message(self, hub_message):
+    def write_message(self, hub_message: BaseMessage):
+        ...
+
+    @abstractmethod
+    def encode(self, message):
         ...
 
     @staticmethod
     def get_message(dict_message):
-        message_type = MessageType.close if not "type" in dict_message.keys() else MessageType(dict_message["type"])
+        if 'type' in dict_message:
+            message_type = MessageType(dict_message['type'])
+        else:
+            message_type = MessageType.close 
 
+        # FIXME: Copypaste
         dict_message["invocation_id"] = dict_message.get("invocationId", None)
         dict_message["headers"] = dict_message.get("headers", {})
         dict_message["error"] = dict_message.get("error", None)

@@ -5,10 +5,10 @@ import time
 
 sys.path.append("./")
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 
 connection = (
-    HubConnectionBuilder().with_url("wss://localhost:5001/chathub", options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
+    SignalRClient().with_url("wss://localhost:5001/chathub", options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
 )
 
 _lock = threading.Lock()

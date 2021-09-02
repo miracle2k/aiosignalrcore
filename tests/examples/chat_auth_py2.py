@@ -3,7 +3,7 @@ import sys
 import requests
 
 sys.path.append("./")
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 
 
 def print_message(x):
@@ -25,8 +25,8 @@ server_url = input_with_default("Enter your server url(default: {0}): ", "ws://l
 username = input_with_default("Enter your username (default: {0}): ", "mandrewcito@mandrewcito.com")
 password = input_with_default("Enter your password (default: {0}): ", "Abc123.--123?")
 
-hub_connection = (
-    HubConnectionBuilder()
+client = (
+    SignalRClient()
     .with_url(
         server_url,
         options={"access_token_factory": lambda: signalr_core_example_login(login_url, username, password)},

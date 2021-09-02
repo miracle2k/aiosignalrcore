@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 from tests.base_test_case import BaseTestCase, Urls
 
@@ -35,7 +35,7 @@ class TestSendAuthErrorMethod(BaseTestCase):
         self._test_send(msgpack=True)
 
     def _test_send(self, msgpack=False):
-        builder = HubConnectionBuilder().with_url(
+        builder = SignalRClient().with_url(
             self.server_url,
             options={
                 "verify_ssl": False,

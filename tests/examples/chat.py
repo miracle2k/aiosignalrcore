@@ -2,7 +2,7 @@ import logging
 import sys
 
 sys.path.append("./")
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 
 
 def input_with_default(input_text, default_value):
@@ -14,8 +14,8 @@ server_url = input_with_default("Enter your server url(default: {0}): ", "wss://
 username = input_with_default("Enter your username (default: {0}): ", "mandrewcito")
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-hub_connection = (
-    HubConnectionBuilder()
+client = (
+    SignalRClient()
     .with_url(server_url, options={"verify_ssl": False})
     .configure_logging(logging.DEBUG, socket_trace=True, handler=handler)
     .with_automatic_reconnect(

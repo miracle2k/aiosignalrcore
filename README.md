@@ -21,13 +21,13 @@ The names of all modules, classes, and methods are preserved.
 ```python
 import asyncio
 import logging
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.messages.completion_message import CompletionMessage
 from aiosignalrcore.transport.websockets.connection import ConnectionState
 
 
-hub_connection = (
-    HubConnectionBuilder()
+client= (
+    SignalRClient()
         .with_url('%URL%')
         .with_automatic_reconnect(
             {

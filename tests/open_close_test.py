@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from tests.base_test_case import BaseTestCase
 
 
@@ -13,9 +13,7 @@ class TestClientStreamMethod(BaseTestCase):
         pass
 
     def test_start(self):
-        connection = (
-            HubConnectionBuilder().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
-        )
+        connection = SignalRClient().with_url(self.server_url, options={"verify_ssl": False}).configure_logging(logging.ERROR).build()
 
         _lock = threading.Lock()
         self.assertTrue(_lock.acquire(timeout=30))

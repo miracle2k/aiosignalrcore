@@ -44,7 +44,7 @@ If i update weboscket library i fall into error number 2, on local machine i can
 ## Connect to a server without auth
 
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url)\
     .configure_logging(logging.DEBUG)\
     .with_automatic_reconnect({
@@ -59,7 +59,7 @@ hub_connection = HubConnectionBuilder()\
 login_function must provide auth token
 
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
             .with_url(server_url,
             options={
                 "access_token_factory": login_function,
@@ -95,14 +95,14 @@ A login function must provide a error control if authorization fails. When conne
 ## Configure logging
 
 ```python
-HubConnectionBuilder()\
+SignalRClient()\
     .with_url(server_url,
     .configure_logging(logging.DEBUG)
     ...
 ```
 ## Configure socket trace
 ```python 
-HubConnectionBuilder()\
+SignalRClient()\
     .with_url(server_url,
     .configure_logging(logging.DEBUG, socket_trace=True) 
     ... 
@@ -112,7 +112,7 @@ HubConnectionBuilder()\
  import logging
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url, options={"verify_ssl": False}) \
     .configure_logging(logging.DEBUG, socket_trace=True, handler=handler)
     ...
@@ -121,14 +121,14 @@ hub_connection = HubConnectionBuilder()\
 After reaching max_attemps an exeption will be thrown and on_disconnect event will be
 fired.
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url)\
     ...
     .build()
 ```
 ## Configuring aditional headers
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
             .with_url(server_url,
             options={
                 "headers": {
@@ -141,7 +141,7 @@ hub_connection = HubConnectionBuilder()\
 ## Configuring aditional querystring parameters
 ```python
 server_url ="http.... /?myquerystringparam=134&foo=bar"
-connection = HubConnectionBuilder()\
+connection = SignalRClient()\
             .with_url(server_url,
             options={
             })\
@@ -149,7 +149,7 @@ connection = HubConnectionBuilder()\
 ```
 ## Congfigure skip negotiation
 ```python
-hub_connection = HubConnectionBuilder() \
+client= SignalRClient() \
         .with_url("ws://"+server_url, options={
             "verify_ssl": False,
             "skip_negotiation": False,
@@ -165,7 +165,7 @@ hub_connection = HubConnectionBuilder() \
 keep_alive_interval sets the secconds of ping message
 
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url)\
     .configure_logging(logging.DEBUG)\
     .with_automatic_reconnect({
@@ -177,7 +177,7 @@ hub_connection = HubConnectionBuilder()\
 ```
 ## Configuring logging
 ```python
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url)\
     .configure_logging(logging.DEBUG)\
     .with_automatic_reconnect({
@@ -193,7 +193,7 @@ hub_connection = HubConnectionBuilder()\
 ```python
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 
-HubConnectionBuilder()\
+SignalRClient()\
             .with_url(self.server_url, options={"verify_ssl":False})\
                 ... 
             .with_hub_protocol(MessagePackHubProtocol())\
@@ -280,7 +280,7 @@ A mini example could be something like this:
 ```python
 import logging
 import sys
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 
 
 def input_with_default(input_text, default_value):
@@ -292,7 +292,7 @@ server_url = input_with_default('Enter your server url(default: {0}): ', "wss://
 username = input_with_default('Enter your username (default: {0}): ', "mandrewcito")
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-hub_connection = HubConnectionBuilder()\
+client= SignalRClient()\
     .with_url(server_url, options={"verify_ssl": False}) \
     .configure_logging(logging.DEBUG, socket_trace=True, handler=handler) \
     .with_automatic_reconnect({

@@ -2,7 +2,7 @@ import logging
 import sys
 
 sys.path.append("./")
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 
 
@@ -15,8 +15,8 @@ server_url = input_with_default("Enter your server url(default: {0}): ", "wss://
 username = input_with_default("Enter your username (default: {0}): ", "mandrewcito")
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-hub_connection = (
-    HubConnectionBuilder()
+client = (
+    SignalRClient()
     .with_url(server_url, options={"verify_ssl": False})
     .configure_logging(logging.ERROR, socket_trace=False, handler=handler)
     .with_automatic_reconnect(

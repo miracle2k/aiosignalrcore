@@ -4,7 +4,7 @@ import uuid
 
 import requests
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
 from tests.base_test_case import BaseTestCase, Urls
 
@@ -27,7 +27,7 @@ class TestSendAuthMethod(BaseTestCase):
         return response.json()["token"]
 
     def _setUp(self, msgpack=False):
-        builder = HubConnectionBuilder().with_url(
+        builder = SignalRClient().with_url(
             self.server_url,
             options={
                 "verify_ssl": False,

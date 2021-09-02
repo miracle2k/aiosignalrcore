@@ -1,25 +1,37 @@
-import logging
-from ..protocol.json_hub_protocol import JsonHubProtocol
+from abc import ABC, abstractmethod
+from typing import Union
+
+from aiosignalrcore.messages.base_message import BaseMessage
+from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
 
 
-_logger = logging.getLogger(__name__)
+class BaseTransport(ABC):
+    protocol: BaseHubProtocol
 
+    @abstractmethod
+    async def run(self) -> None:
+        ...
 
-class BaseTransport:
-    def __init__(self, protocol=JsonHubProtocol(), on_message=None):
-        self.protocol = protocol
-        self._on_message = on_message
-        self._on_open = None
-        self._on_close = None
+    @abstractmethod
+    async def send(self, message: bytes):
+        ...
 
-    def on_open_callback(self, callback):
-        self._on_open = callback
+    @abstractmethod
+    async def _on_open(self) -> None:
+        ...
 
-    def on_close_callback(self, callback):
-        self._on_close = callback
+    @abstractmethod
+    async def _on_close(self) -> None:
+        ...
 
-    async def run(self):  # pragma: no cover
-        raise NotImplementedError()
+    @abstractmethod
+    async def _on_raw_message(self, raw_message: Union[str, bytes]) -> None:
+        ...
 
-    async def send(self, message, on_invocation=None):  # pragma: no cover
-        raise NotImplementedError()
+    @abstractmethod
+    async def _on_message(self, message: BaseMessage) -> None:
+        ...
+
+    @abstractmethod
+    async def _wait(self) -> None:
+        ...

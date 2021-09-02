@@ -4,7 +4,7 @@ import time
 sys.path.append("./")
 import logging
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.subject import Subject
 
 
@@ -15,8 +15,8 @@ def input_with_default(input_text, default_value):
 
 server_url = input_with_default("Enter your server url(default: {0}): ", "wss://localhost:5001/chatHub")
 
-hub_connection = (
-    HubConnectionBuilder()
+client = (
+    SignalRClient()
     .with_url(server_url, options={"verify_ssl": False})
     .configure_logging(logging.DEBUG)
     .with_automatic_reconnect(

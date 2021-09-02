@@ -2,14 +2,14 @@ import logging
 
 import websocket
 
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 from tests.base_test_case import BaseTestCase
 
 
 class TestConfiguration(BaseTestCase):
     def test_bad_auth_function(self):
         with self.assertRaises(TypeError):
-            self.connection = HubConnectionBuilder().with_url(
+            self.connection = SignalRClient().with_url(
                 self.server_url,
                 options={
                     "verify_ssl": False,
@@ -20,15 +20,15 @@ class TestConfiguration(BaseTestCase):
 
     def test_bad_url(self):
         with self.assertRaises(ValueError):
-            self.connection = HubConnectionBuilder().with_url("")
+            self.connection = SignalRClient().with_url("")
 
     def test_bad_options(self):
         with self.assertRaises(TypeError):
-            self.connection = HubConnectionBuilder().with_url(self.server_url, options=["ssl", True])
+            self.connection = SignalRClient().with_url(self.server_url, options=["ssl", True])
 
     def test_auth_configured(self):
         with self.assertRaises(TypeError):
-            hub = HubConnectionBuilder().with_url(
+            hub = SignalRClient().with_url(
                 self.server_url,
                 options={
                     "verify_ssl": False,
@@ -41,7 +41,7 @@ class TestConfiguration(BaseTestCase):
 
     def test_enable_trace(self):
         hub = (
-            HubConnectionBuilder()
+            SignalRClient()
             .with_url(self.server_url, options={"verify_ssl": False})
             .configure_logging(logging.WARNING, socket_trace=True)
             .with_automatic_reconnect(

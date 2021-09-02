@@ -4,7 +4,7 @@ import sys
 import requests
 
 sys.path.append("./")
-from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
+from aiosignalrcore.hub_connection_builder import SignalRClient
 
 
 def input_with_default(input_text, default_value):
@@ -22,8 +22,8 @@ server_url = input_with_default("Enter your server url(default: {0}): ", "wss://
 username = input_with_default("Enter your username (default: {0}): ", "test")
 password = input_with_default("Enter your password (default: {0}): ", "test")
 
-hub_connection = (
-    HubConnectionBuilder()
+client = (
+    SignalRClient()
     .configure_logging(logging_level=logging.DEBUG)
     .with_url(
         server_url,
