@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, Callable, List, Union
+from typing import Callable, List, Union
 
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
@@ -90,7 +90,7 @@ class BaseHubConnection:
             arguments.connection = self
             arguments.target = method
             arguments.start()
-        
+
         else:
             raise NotImplementedError
 
