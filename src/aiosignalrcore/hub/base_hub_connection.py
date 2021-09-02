@@ -1,11 +1,5 @@
-import ssl
-import threading
-import time
-import traceback
 import uuid
 from typing import Callable
-
-import requests
 
 from aiosignalrcore.helpers import Helpers
 from aiosignalrcore.messages.message_type import MessageType

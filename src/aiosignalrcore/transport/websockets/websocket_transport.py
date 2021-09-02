@@ -6,7 +6,7 @@ import traceback
 import uuid
 from functools import partial
 
-import requests
+import aiohttp
 import websockets
 
 from ...helpers import Helpers
@@ -48,7 +48,7 @@ class WebsocketTransport(BaseTransport):
 
     async def run(self):
         if not self.skip_negotiation:
-            self.negotiate()
+            await self.negotiate()
 
         self.state = ConnectionState.connecting
         self.logger.debug("start url:" + self.url)
@@ -79,13 +79,14 @@ class WebsocketTransport(BaseTransport):
                 self.handshake_received.clear()
                 await self.on_close()
 
-    def negotiate(self):
+    async def negotiate(self):
         negotiate_url = Helpers.get_negotiate_url(self.url)
         self.logger.debug("Negotiate url:{0}".format(negotiate_url))
 
-        response = requests.post(
-            negotiate_url, headers=self.headers, verify=self.verify_ssl
-        )
+        async with aiohttp.ClientSession() as session:
+            response = session.post(
+                negotiate_url, headers=self.headers, verify=self.verify_ssl
+            )
         self.logger.debug("Response status code{0}".format(response.status_code))
 
         if response.status_code != 200:

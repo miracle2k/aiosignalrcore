@@ -16,8 +16,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7"
 msgpack = "==1.0.2"
-requests = ">=2.22.0"
 websockets = "^8.1"
+aiohttp = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
