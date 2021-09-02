@@ -3,7 +3,7 @@ import time
 from enum import Enum
 
 
-class ConnectionStateChecker(object):
+class ConnectionStateChecker:
     def __init__(
         self,
         ping_function,
@@ -13,14 +13,14 @@ class ConnectionStateChecker(object):
         self._last_message = time.time()
         self._ping_function = ping_function
 
-    async def run(self):
+    async def run(self) -> None:
         while True:
             await asyncio.sleep(1)
             time_without_messages = time.time() - self._last_message
             if self._keep_alive_interval < time_without_messages:
                 await self._ping_function()
 
-    def reset(self):
+    def reset(self) -> None:
         self._last_message = time.time()
 
 
@@ -29,8 +29,8 @@ class ReconnectionType(Enum):
     interval = 1  # variable sleep time
 
 
-class ReconnectionHandler(object):
-    def __init__(self):
+class ReconnectionHandler:
+    def __init__(self) -> None:
         self.reconnecting = False
         self.attempt_number = 0
         self.last_attempt = time.time()
@@ -44,12 +44,12 @@ class ReconnectionHandler(object):
 
 
 class RawReconnectionHandler(ReconnectionHandler):
-    def __init__(self, sleep_time, max_attempts):
-        super(RawReconnectionHandler, self).__init__()
+    def __init__(self, sleep_time: int, max_attempts: int) -> None:
+        super().__init__()
         self.sleep_time = sleep_time
         self.max_reconnection_attempts = max_attempts
 
-    def next(self):
+    def next(self) -> int:
         self.reconnecting = True
         if self.max_reconnection_attempts is not None:
             if self.attempt_number <= self.max_reconnection_attempts:
@@ -66,7 +66,7 @@ class IntervalReconnectionHandler(ReconnectionHandler):
         super(IntervalReconnectionHandler, self).__init__()
         self._intervals = intervals
 
-    def next(self):
+    def next(self) -> int:
         self.reconnecting = True
         index = self.attempt_number
         self.attempt_number += 1

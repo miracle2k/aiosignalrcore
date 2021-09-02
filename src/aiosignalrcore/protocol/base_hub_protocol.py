@@ -1,4 +1,5 @@
 import json
+from abc import ABC, abstractmethod
 from typing import Any, Tuple
 
 from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
@@ -13,12 +14,20 @@ from ..messages.stream_invocation_message import StreamInvocationMessage  # 4
 from ..messages.stream_item_message import StreamItemMessage  # 2
 
 
-class BaseHubProtocol:
-    def __init__(self, protocol, version, transfer_format, record_separator):
+class BaseHubProtocol(ABC):
+    def __init__(self, protocol: str, version: int, transfer_format: str, record_separator: str):
         self.protocol = protocol
         self.version = version
         self.transfer_format = transfer_format
         self.record_separator = record_separator
+
+    @abstractmethod
+    def parse_messages(self, raw_message: str):
+        ...
+
+    @abstractmethod
+    def write_message(self, hub_message):
+        ...
 
     @staticmethod
     def get_message(dict_message):
@@ -55,9 +64,3 @@ class BaseHubProtocol:
 
     def handshake_message(self) -> HandshakeRequestMessage:
         return HandshakeRequestMessage(self.protocol, self.version)
-
-    def parse_messages(self, raw_message: str):
-        raise ValueError("Protocol must implement this method")
-
-    def write_message(self, hub_message):
-        raise ValueError("Protocol must implement this method")

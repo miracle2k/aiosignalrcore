@@ -1,23 +1,24 @@
 import logging
 import uuid
-from typing import Callable, List, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
+from aiosignalrcore.hub.handlers import InvocationHandler, StreamHandler
+from aiosignalrcore.messages.invocation_message import InvocationMessage
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
-
-from ..messages.invocation_message import InvocationMessage
-from ..subject import Subject
-from ..transport.websockets.websocket_transport import WebsocketTransport
-from .handlers import InvocationHandler, StreamHandler
+from aiosignalrcore.subject import Subject
+from aiosignalrcore.transport.websockets.websocket_transport import WebsocketTransport
 
 _logger = logging.getLogger(__name__)
 
 
 class BaseHubConnection:
-    def __init__(self, url: str, protocol, headers={}, **kwargs) -> None:
-        self.headers = headers
-        self.handlers = []
-        self.stream_handlers = []
+    # FIXME: protocol type
+    def __init__(self, url: str, protocol, headers: Optional[Dict[str, str]] = None, **kwargs) -> None:
+        self.headers = headers or {}
+        # FIXME: Whyyyy?
+        self.handlers: List[Tuple[str, Callable]] = []
+        self.stream_handlers: List[InvocationHandler] = []
         self._on_error = lambda error: _logger.info("on_error not defined {0}".format(error))
         self.transport = WebsocketTransport(url=url, protocol=protocol, headers=headers, on_message=self.on_message, **kwargs)
 

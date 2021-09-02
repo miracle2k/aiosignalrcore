@@ -1,10 +1,11 @@
 import json
+import logging
 from json import JSONEncoder
 
-from aiosignalrcore.helpers import Helpers
+from aiosignalrcore.messages.message_type import MessageType
+from aiosignalrcore.protocol.base_hub_protocol import BaseHubProtocol
 
-from ..messages.message_type import MessageType
-from .base_hub_protocol import BaseHubProtocol
+_logger = logging.getLogger(__name__)
 
 
 class MyEncoder(JSONEncoder):
@@ -23,13 +24,13 @@ class MyEncoder(JSONEncoder):
 
 
 class JsonHubProtocol(BaseHubProtocol):
-    def __init__(self):
-        super(JsonHubProtocol, self).__init__("json", 1, "Text", chr(0x1E))
+    def __init__(self) -> None:
+        super().__init__("json", 1, "Text", chr(0x1E))
         self.encoder = MyEncoder()
 
     def parse_messages(self, raw):
-        Helpers.get_logger().debug("Raw message incomming: ")
-        Helpers.get_logger().debug(raw)
+        _logger.debug("Raw message incomming: ")
+        _logger.debug(raw)
         raw_messages = [
             record.replace(self.record_separator, "")
             for record in raw.split(self.record_separator)
@@ -43,5 +44,5 @@ class JsonHubProtocol(BaseHubProtocol):
         return result
 
     def encode(self, message):
-        Helpers.get_logger().debug(self.encoder.encode(message) + self.record_separator)
+        _logger.debug(self.encoder.encode(message) + self.record_separator)
         return self.encoder.encode(message) + self.record_separator

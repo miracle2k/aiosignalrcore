@@ -1,18 +1,18 @@
 import logging
-from typing import Callable
+from typing import Callable, Dict
 
 _logger = logging.getLogger(__name__)
 
 
 class StreamHandler:
-    def __init__(self, event: str, invocation_id: str):
+    def __init__(self, event: str, invocation_id: str) -> None:
         self.event = event
         self.invocation_id = invocation_id
         self.next_callback = lambda _: _logger.warning("next stream handler fired, no callback configured")
         self.complete_callback = lambda _: _logger.warning("next complete handler fired, no callback configured")
         self.error_callback = lambda _: _logger.warning("next error handler fired, no callback configured")
 
-    def subscribe(self, subscribe_callbacks: dict) -> None:
+    def subscribe(self, subscribe_callbacks: Dict[str, Callable]) -> None:
         error = " subscribe object must be a dict like {0}".format({"next": None, "complete": None, "error": None})
 
         if subscribe_callbacks is None or type(subscribe_callbacks) is not dict:
@@ -23,8 +23,8 @@ class StreamHandler:
 
         if (
             not callable(subscribe_callbacks["next"])
-            or not callable(subscribe_callbacks["next"])
-            or not callable(subscribe_callbacks["next"])
+            or not callable(subscribe_callbacks["complete"])
+            or not callable(subscribe_callbacks["error"])
         ):
             raise ValueError("Suscribe callbacks must be functions")
 
