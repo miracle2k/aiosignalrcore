@@ -8,8 +8,9 @@ class BaseMessage(object):
 
 class BaseHeadersMessage(BaseMessage):
     """
-        All messages expct ping can carry aditional headers
+    All messages expct ping can carry aditional headers
     """
+
     def __init__(self, message_type, headers={}, **kwargs):
         super(BaseHeadersMessage, self).__init__(message_type)
         self.headers = headers

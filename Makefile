@@ -1,28 +1,36 @@
 .ONESHELL:
-.PHONY: test
+.PHONY: docs
 .DEFAULT_GOAL: all
 
+DEV=1
+PLUGINS=""
+TAG=latest
+
 all: install lint test cover
+lint: isort black flake mypy
 
 debug:
 	pip install . --force --no-deps
 
 install:
-	poetry install --remove-untracked
+	poetry install \
+	`if [ -n "${PLUGINS}" ]; then for i in ${PLUGINS}; do echo "-E $$i "; done; fi` \
+	`if [ "${DEV}" = "0" ]; then echo "--no-dev"; fi`
 
 isort:
-	poetry run isort src
+	poetry run isort src tests
 
-pylint:
-	poetry run pylint src || poetry run pylint-exit $$?
+black:
+	poetry run black src tests
+
+flake:
+	poetry run flakehell lint src tests
 
 mypy:
-	poetry run mypy src
-
-lint: isort pylint mypy
+	poetry run mypy src tests
 
 test:
-	PYTHONPATH="$$PYTHONPATH:src" poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v .
+	poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
 
 cover:
 	poetry run diff-cover coverage.xml

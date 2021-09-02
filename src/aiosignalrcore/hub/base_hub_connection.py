@@ -1,43 +1,42 @@
+import ssl
 import threading
-import requests
+import time
 import traceback
 import uuid
-import time
-import ssl
 from typing import Callable
-from aiosignalrcore.messages.message_type import MessageType
-from aiosignalrcore.messages.stream_invocation_message \
-    import StreamInvocationMessage
-from aiosignalrcore.messages.ping_message import PingMessage
-from .errors import UnAuthorizedHubError, HubError, HubConnectionError
+
+import requests
+
 from aiosignalrcore.helpers import Helpers
-from .handlers import StreamHandler, InvocationHandler
-from ..protocol.messagepack_protocol import MessagePackHubProtocol
-from ..transport.websockets.websocket_transport import WebsocketTransport
+from aiosignalrcore.messages.message_type import MessageType
+from aiosignalrcore.messages.ping_message import PingMessage
+from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
+
 from ..helpers import Helpers
-from ..subject import Subject
 from ..messages.invocation_message import InvocationMessage
+from ..protocol.messagepack_protocol import MessagePackHubProtocol
+from ..subject import Subject
+from ..transport.websockets.websocket_transport import WebsocketTransport
+from .errors import HubConnectionError, HubError, UnAuthorizedHubError
+from .handlers import InvocationHandler, StreamHandler
 
 
 class BaseHubConnection:
-    def __init__(
-            self,
-            url,
-            protocol,
-            headers={},
-            **kwargs):
+    def __init__(self, url, protocol, headers={}, **kwargs):
         self.headers = headers
         self.logger = Helpers.get_logger()
         self.handlers = []
         self.stream_handlers = []
         self._on_error = lambda error: self.logger.info(
-            "on_error not defined {0}".format(error))
+            "on_error not defined {0}".format(error)
+        )
         self.transport = WebsocketTransport(
             url=url,
             protocol=protocol,
             headers=headers,
             on_message=self.on_message,
-            **kwargs)
+            **kwargs
+        )
 
     async def run(self):
         self.logger.debug("Connection started")
@@ -101,16 +100,13 @@ class BaseHubConnection:
 
         if type(arguments) is list:
             message = InvocationMessage(
-                str(uuid.uuid4()),
-                method,
-                arguments,
-                headers=self.headers)
+                str(uuid.uuid4()), method, arguments, headers=self.headers
+            )
 
             if on_invocation:
                 self.stream_handlers.append(
-                    InvocationHandler(
-                        message.invocation_id,
-                        on_invocation))
+                    InvocationHandler(message.invocation_id, on_invocation)
+                )
 
             await self.transport.send(message)
 
@@ -131,13 +127,12 @@ class BaseHubConnection:
 
             if message.type == MessageType.invocation:
                 fired_handlers = list(
-                    filter(
-                        lambda h: h[0] == message.target,
-                        self.handlers))
+                    filter(lambda h: h[0] == message.target, self.handlers)
+                )
                 if len(fired_handlers) == 0:
                     self.logger.warning(
-                        "event '{0}' hasn't fire any handler".format(
-                            message.target))
+                        "event '{0}' hasn't fire any handler".format(message.target)
+                    )
                 for _, handler in fired_handlers:
                     await handler(message.arguments)
 
@@ -153,7 +148,9 @@ class BaseHubConnection:
                 fired_handlers = list(
                     filter(
                         lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers))
+                        self.stream_handlers,
+                    )
+                )
 
                 # Stream callbacks
                 for handler in fired_handlers:
@@ -163,17 +160,23 @@ class BaseHubConnection:
                 self.stream_handlers = list(
                     filter(
                         lambda h: h.invocation_id != message.invocation_id,
-                        self.stream_handlers))
+                        self.stream_handlers,
+                    )
+                )
 
             if message.type == MessageType.stream_item:
                 fired_handlers = list(
                     filter(
                         lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers))
+                        self.stream_handlers,
+                    )
+                )
                 if len(fired_handlers) == 0:
                     self.logger.warning(
                         "id '{0}' hasn't fire any stream handler".format(
-                            message.invocation_id))
+                            message.invocation_id
+                        )
+                    )
                 for handler in fired_handlers:
                     handler.next_callback(message.item)
 
@@ -184,11 +187,15 @@ class BaseHubConnection:
                 fired_handlers = list(
                     filter(
                         lambda h: h.invocation_id == message.invocation_id,
-                        self.stream_handlers))
+                        self.stream_handlers,
+                    )
+                )
                 if len(fired_handlers) == 0:
                     self.logger.warning(
                         "id '{0}' hasn't fire any stream handler".format(
-                            message.invocation_id))
+                            message.invocation_id
+                        )
+                    )
 
                 for handler in fired_handlers:
                     handler.error_callback(message)
@@ -197,7 +204,9 @@ class BaseHubConnection:
                 self.stream_handlers = list(
                     filter(
                         lambda h: h.invocation_id != message.invocation_id,
-                        self.stream_handlers))
+                        self.stream_handlers,
+                    )
+                )
 
     async def stream(self, event, event_params):
         """Starts server streaming
@@ -221,8 +230,7 @@ class BaseHubConnection:
         self.stream_handlers.append(stream_obj)
         await self.transport.send(
             StreamInvocationMessage(
-                invocation_id,
-                event,
-                event_params,
-                headers=self.headers))
+                invocation_id, event, event_params, headers=self.headers
+            )
+        )
         return stream_obj

@@ -1,5 +1,5 @@
-from ..protocol.json_hub_protocol import JsonHubProtocol
 from ..helpers import Helpers
+from ..protocol.json_hub_protocol import JsonHubProtocol
 
 
 class BaseTransport:
@@ -12,11 +12,11 @@ class BaseTransport:
 
     def on_open_callback(self, callback):
         self._on_open = callback
-    
+
     def on_close_callback(self, callback):
         self._on_close = callback
 
-    async def run(self): # pragma: no cover
+    async def run(self):  # pragma: no cover
         raise NotImplementedError()
 
     async def send(self, message, on_invocation=None):  # pragma: no cover

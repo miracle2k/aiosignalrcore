@@ -1,15 +1,15 @@
+import asyncio
 import threading
 import time
 from enum import Enum
-import asyncio
 
 
 class ConnectionStateChecker(object):
     def __init__(
-            self,
-            ping_function,
-            keep_alive_interval,
-        ):
+        self,
+        ping_function,
+        keep_alive_interval,
+    ):
         self._keep_alive_interval = keep_alive_interval
         self._last_message = time.time()
         self._ping_function = ping_function
@@ -23,6 +23,7 @@ class ConnectionStateChecker(object):
 
     def reset(self):
         self._last_message = time.time()
+
 
 class ReconnectionType(Enum):
     raw = 0  # Reconnection with max reconnections and constant sleep time
@@ -57,8 +58,8 @@ class RawReconnectionHandler(ReconnectionHandler):
                 return self.sleep_time
             else:
                 raise ValueError(
-                    "Max attemps reached {0}"
-                    .format(self.max_reconnection_attempts))
+                    "Max attemps reached {0}".format(self.max_reconnection_attempts)
+                )
         else:  # Infinite reconnect
             return self.sleep_time
 
@@ -73,6 +74,5 @@ class IntervalReconnectionHandler(ReconnectionHandler):
         index = self.attempt_number
         self.attempt_number += 1
         if index >= len(self._intervals):
-            raise ValueError(
-                "Max intervals reached {0}".format(self._intervals))
+            raise ValueError("Max intervals reached {0}".format(self._intervals))
         return self._intervals[index]

@@ -1,16 +1,18 @@
-import threading
 import logging
 import sys
+import threading
 import time
 
 sys.path.append("./")
 
 from aiosignalrcore.hub_connection_builder import HubConnectionBuilder
 
-connection = HubConnectionBuilder()\
-    .with_url("wss://localhost:5001/chathub", options={"verify_ssl": False})\
-    .configure_logging(logging.ERROR)\
+connection = (
+    HubConnectionBuilder()
+    .with_url("wss://localhost:5001/chathub", options={"verify_ssl": False})
+    .configure_logging(logging.ERROR)
     .build()
+)
 
 _lock = threading.Lock()
 

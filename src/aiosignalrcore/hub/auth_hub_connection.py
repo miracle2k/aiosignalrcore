@@ -1,5 +1,5 @@
-from .base_hub_connection import BaseHubConnection
 from ..helpers import Helpers
+from .base_hub_connection import BaseHubConnection
 
 
 class AuthHubConnection(BaseHubConnection):
@@ -12,8 +12,7 @@ class AuthHubConnection(BaseHubConnection):
         try:
             Helpers.get_logger().debug("Starting connection ...")
             self.token = self.auth_function()
-            Helpers.get_logger()\
-                .debug("auth function result {0}".format(self.token))
+            Helpers.get_logger().debug("auth function result {0}".format(self.token))
             self.headers["Authorization"] = "Bearer " + self.token
             return await super(AuthHubConnection, self).run()
         except Exception as ex:

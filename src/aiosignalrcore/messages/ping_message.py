@@ -1,4 +1,5 @@
 from .base_message import BaseMessage
+
 """
 A `Ping` message is a JSON object with the following properties:
 
@@ -15,6 +16,5 @@ Example
 
 
 class PingMessage(BaseMessage):
-    def __init__(
-            self, **kwargs):
+    def __init__(self, **kwargs):
         super(PingMessage, self).__init__(6, **kwargs)

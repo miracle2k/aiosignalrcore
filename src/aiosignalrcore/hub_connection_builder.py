@@ -1,12 +1,16 @@
 import uuid
-from .hub.base_hub_connection import BaseHubConnection
-from .hub.auth_hub_connection import AuthHubConnection
-from .transport.websockets.reconnection import \
-    IntervalReconnectionHandler, RawReconnectionHandler, ReconnectionType
+
 from .helpers import Helpers
+from .hub.auth_hub_connection import AuthHubConnection
+from .hub.base_hub_connection import BaseHubConnection
 from .messages.invocation_message import InvocationMessage
 from .protocol.json_hub_protocol import JsonHubProtocol
 from .subject import Subject
+from .transport.websockets.reconnection import (
+    IntervalReconnectionHandler,
+    RawReconnectionHandler,
+    ReconnectionType,
+)
 
 
 class HubConnectionBuilder(object):
@@ -23,9 +27,7 @@ class HubConnectionBuilder(object):
     def __init__(self):
         self.hub_url = None
         self.hub = None
-        self.options = {
-            "access_token_factory": None
-        }
+        self.options = {"access_token_factory": None}
         self.token = None
         self.headers = None
         self.negotiate_headers = None
@@ -38,10 +40,7 @@ class HubConnectionBuilder(object):
         self.skip_negotiation = False  # By default do not skip negotiation
         self.running = False
 
-    def with_url(
-            self,
-            hub_url: str,
-            options: dict = None):
+    def with_url(self, hub_url: str, options: dict = None):
         """Configure the hub url and options like negotiation and auth function
 
         def login(self):
@@ -86,30 +85,31 @@ class HubConnectionBuilder(object):
             raise ValueError("hub_url must be a valid url.")
 
         if options is not None and type(options) != dict:
-            raise TypeError(
-                "options must be a dict {0}.".format(self.options))
+            raise TypeError("options must be a dict {0}.".format(self.options))
 
-        if options is not None \
-                and "access_token_factory" in options.keys()\
-                and not callable(options["access_token_factory"]):
-            raise TypeError(
-                "access_token_factory must be a function without params")
+        if (
+            options is not None
+            and "access_token_factory" in options.keys()
+            and not callable(options["access_token_factory"])
+        ):
+            raise TypeError("access_token_factory must be a function without params")
 
         if options is not None:
-            self.has_auth_configured = \
-                "access_token_factory" in options.keys()\
+            self.has_auth_configured = (
+                "access_token_factory" in options.keys()
                 and callable(options["access_token_factory"])
+            )
 
-            self.skip_negotiation = "skip_negotiation" in options.keys()\
-                and options["skip_negotiation"]
+            self.skip_negotiation = (
+                "skip_negotiation" in options.keys() and options["skip_negotiation"]
+            )
 
         self.hub_url = hub_url
         self.hub = None
         self.options = self.options if options is None else options
         return self
 
-    def configure_logging(
-            self, logging_level, socket_trace=False, handler=None):
+    def configure_logging(self, logging_level, socket_trace=False, handler=None):
         """Configures signalr logging
 
         Args:
@@ -162,20 +162,21 @@ class HubConnectionBuilder(object):
             self.protocol = JsonHubProtocol()
         self.headers = {}
 
-        if "headers" in self.options.keys()\
-                and type(self.options["headers"]) is dict:
+        if "headers" in self.options.keys() and type(self.options["headers"]) is dict:
             self.headers = self.options["headers"]
 
         if self.has_auth_configured:
             auth_function = self.options["access_token_factory"]
             if auth_function is None or not callable(auth_function):
-                raise TypeError(
-                    "access_token_factory is not function")
-        if "verify_ssl" in self.options.keys()\
-                and type(self.options["verify_ssl"]) is bool:
+                raise TypeError("access_token_factory is not function")
+        if (
+            "verify_ssl" in self.options.keys()
+            and type(self.options["verify_ssl"]) is bool
+        ):
             self.verify_ssl = self.options["verify_ssl"]
 
-        return AuthHubConnection(
+        return (
+            AuthHubConnection(
                 headers=self.headers,
                 auth_function=auth_function,
                 url=self.hub_url,
@@ -184,9 +185,10 @@ class HubConnectionBuilder(object):
                 reconnection_handler=self.reconnection_handler,
                 verify_ssl=self.verify_ssl,
                 skip_negotiation=self.skip_negotiation,
-                enable_trace=self.enable_trace)\
-            if self.has_auth_configured else\
-            BaseHubConnection(
+                enable_trace=self.enable_trace,
+            )
+            if self.has_auth_configured
+            else BaseHubConnection(
                 url=self.hub_url,
                 protocol=self.protocol,
                 keep_alive_interval=self.keep_alive_interval,
@@ -194,8 +196,10 @@ class HubConnectionBuilder(object):
                 headers=self.headers,
                 verify_ssl=self.verify_ssl,
                 skip_negotiation=self.skip_negotiation,
-                enable_trace=self.enable_trace)
-            
+                enable_trace=self.enable_trace,
+            )
+        )
+
     def with_automatic_reconnect(self, data: dict):
         """Configures automatic reconnection
             https://devblogs.microsoft.com/aspnet/asp-net-core-updates-in-net-core-3-0-preview-4/
@@ -235,11 +239,8 @@ class HubConnectionBuilder(object):
 
         if reconnection_type == ReconnectionType.raw:
             self.reconnection_handler = RawReconnectionHandler(
-                reconnect_interval,
-                max_attempts
+                reconnect_interval, max_attempts
             )
         if reconnection_type == ReconnectionType.interval:
-            self.reconnection_handler = IntervalReconnectionHandler(
-                intervals
-            )
+            self.reconnection_handler = IntervalReconnectionHandler(intervals)
         return self

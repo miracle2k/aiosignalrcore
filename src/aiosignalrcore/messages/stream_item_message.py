@@ -1,4 +1,5 @@
 from .base_message import BaseHeadersMessage
+
 """
 A `StreamItem` message is a JSON object with the following properties:
 
@@ -21,11 +22,7 @@ Example
 
 
 class StreamItemMessage(BaseHeadersMessage):
-    def __init__(
-            self,
-            invocation_id,
-            item,
-            **kwargs):
+    def __init__(self, invocation_id, item, **kwargs):
         super(StreamItemMessage, self).__init__(2, **kwargs)
         self.invocation_id = invocation_id
         self.item = item

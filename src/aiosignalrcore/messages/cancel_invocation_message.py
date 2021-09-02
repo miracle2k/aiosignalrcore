@@ -1,4 +1,5 @@
 from .base_message import BaseHeadersMessage
+
 """
 A `CancelInvocation` message is a JSON object with the following properties
 
@@ -16,9 +17,6 @@ Example
 
 
 class CancelInvocationMessage(BaseHeadersMessage):
-    def __init__(
-            self,
-            invocation_id,
-            **kwargs):
+    def __init__(self, invocation_id, **kwargs):
         super(CancelInvocationMessage, self).__init__(5, **kwargs)
         self.invocation_id = invocation_id

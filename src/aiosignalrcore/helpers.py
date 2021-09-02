@@ -10,7 +10,9 @@ class Helpers:
             handler = logging.StreamHandler()
             handler.setFormatter(
                 logging.Formatter(
-                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+            )
             handler.setLevel(level)
         logger.addHandler(handler)
         logger.setLevel(level)
@@ -30,12 +32,8 @@ class Helpers:
 
     @staticmethod
     def replace_scheme(
-            url,
-            root_scheme,
-            source,
-            secure_source,
-            destination,
-            secure_destination):
+        url, root_scheme, source, secure_source, destination, secure_destination
+    ):
         url_parts = parse.urlsplit(url)
 
         if root_scheme not in url_parts.scheme:
@@ -48,24 +46,11 @@ class Helpers:
 
     @staticmethod
     def websocket_to_http(url):
-        return Helpers.replace_scheme(
-            url,
-            "http",
-            "ws",
-            "wss",
-            "http",
-            "https")
+        return Helpers.replace_scheme(url, "http", "ws", "wss", "http", "https")
 
     @staticmethod
     def http_to_websocket(url):
-        return Helpers.replace_scheme(
-            url,
-            "ws",
-            "http",
-            "https",
-            "ws",
-            "wss"
-        )
+        return Helpers.replace_scheme(url, "ws", "http", "https", "ws", "wss")
 
     @staticmethod
     def get_negotiate_url(url):
@@ -75,15 +60,15 @@ class Helpers:
 
         url_parts = parse.urlsplit(Helpers.websocket_to_http(url))
 
-        negotiate_suffix = "negotiate"\
-            if url_parts.path.endswith('/')\
-            else "/negotiate"
+        negotiate_suffix = "negotiate" if url_parts.path.endswith("/") else "/negotiate"
 
         url_parts = url_parts._replace(path=url_parts.path + negotiate_suffix)
 
-        return parse.urlunsplit(url_parts) \
-            if querystring == "" else\
-            parse.urlunsplit(url_parts) + "?" + querystring
+        return (
+            parse.urlunsplit(url_parts)
+            if querystring == ""
+            else parse.urlunsplit(url_parts) + "?" + querystring
+        )
 
     @staticmethod
     def encode_connection_id(url, id):
@@ -92,8 +77,7 @@ class Helpers:
         query_string_parts["id"] = id
 
         url_parts = url_parts._replace(
-            query=parse.urlencode(
-                query_string_parts,
-                doseq=True))
+            query=parse.urlencode(query_string_parts, doseq=True)
+        )
 
         return Helpers.http_to_websocket(parse.urlunsplit(url_parts))

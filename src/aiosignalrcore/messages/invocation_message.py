@@ -1,4 +1,5 @@
 from .base_message import BaseHeadersMessage
+
 """
 
 An `Invocation` message is a JSON object with the following properties:
@@ -43,36 +44,24 @@ Example (Non-Blocking):
 
 
 class InvocationMessage(BaseHeadersMessage):
-    def __init__(
-            self,
-            invocation_id,
-            target,
-            arguments, **kwargs):
+    def __init__(self, invocation_id, target, arguments, **kwargs):
         super(InvocationMessage, self).__init__(1, **kwargs)
         self.invocation_id = invocation_id
         self.target = target
         self.arguments = arguments
 
     def __repr__(self):
-        repr_str =\
-            "InvocationMessage: invocation_id {0}, target {1}, arguments {2}"
+        repr_str = "InvocationMessage: invocation_id {0}, target {1}, arguments {2}"
         return repr_str.format(self.invocation_id, self.target, self.arguments)
 
 
 class InvocationClientStreamMessage(BaseHeadersMessage):
-    def __init__(
-            self,
-            stream_ids,
-            target,
-            arguments,
-            **kwargs):
+    def __init__(self, stream_ids, target, arguments, **kwargs):
         super(InvocationClientStreamMessage, self).__init__(1, **kwargs)
         self.target = target
         self.arguments = arguments
         self.stream_ids = stream_ids
 
     def __repr__(self):
-        repr_str =\
-            "InvocationMessage: stream_ids {0}, target {1}, arguments {2}"
-        return repr_str.format(
-            self.stream_ids, self.target, self.arguments)
+        repr_str = "InvocationMessage: stream_ids {0}, target {1}, arguments {2}"
+        return repr_str.format(self.stream_ids, self.target, self.arguments)

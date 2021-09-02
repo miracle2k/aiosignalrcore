@@ -1,4 +1,5 @@
 from .base_message import BaseHeadersMessage
+
 """
 A `Close` message is a JSON object with the following properties
 
@@ -24,9 +25,6 @@ Example - A `Close` message with an error
 
 
 class CloseMessage(BaseHeadersMessage):
-    def __init__(
-            self,
-            error,
-            **kwargs):
+    def __init__(self, error, **kwargs):
         super(CloseMessage, self).__init__(7, **kwargs)
         self.error = error

@@ -1,33 +1,36 @@
 import asyncio
-import websockets
+import ssl
 import threading
-import requests
+import time
 import traceback
 import uuid
-import time
-import ssl
 from functools import partial
-from .reconnection import ConnectionStateChecker
-from .connection import ConnectionState
-from ...messages.ping_message import PingMessage
-from ...hub.errors import HubError, HubConnectionError, UnAuthorizedHubError
-from ...protocol.messagepack_protocol import MessagePackHubProtocol
-from ...protocol.json_hub_protocol import JsonHubProtocol
-from ..base_transport import BaseTransport
-from ...helpers import Helpers
 
+import requests
+import websockets
+
+from ...helpers import Helpers
+from ...hub.errors import HubConnectionError, HubError, UnAuthorizedHubError
+from ...messages.ping_message import PingMessage
+from ...protocol.json_hub_protocol import JsonHubProtocol
+from ...protocol.messagepack_protocol import MessagePackHubProtocol
+from ..base_transport import BaseTransport
+from .connection import ConnectionState
+from .reconnection import ConnectionStateChecker
 
 
 class WebsocketTransport(BaseTransport):
-    def __init__(self,
-                 url="",
-                 headers={},
-                 keep_alive_interval=15,
-                 reconnection_handler=None,
-                 verify_ssl=False,
-                 skip_negotiation=False,
-                 enable_trace=False,
-                 **kwargs):
+    def __init__(
+        self,
+        url="",
+        headers={},
+        keep_alive_interval=15,
+        reconnection_handler=None,
+        verify_ssl=False,
+        skip_negotiation=False,
+        enable_trace=False,
+        **kwargs,
+    ):
         super(WebsocketTransport, self).__init__(**kwargs)
         self.enable_trace = enable_trace
         self.skip_negotiation = skip_negotiation
@@ -38,8 +41,7 @@ class WebsocketTransport(BaseTransport):
         self.handshake_received = asyncio.Event()
         self.verify_ssl = verify_ssl
         self.connection_checker = ConnectionStateChecker(
-            partial(self.send, PingMessage()),
-            keep_alive_interval
+            partial(self.send, PingMessage()), keep_alive_interval
         )
         self.reconnection_handler = reconnection_handler
         self._ws = None
@@ -82,27 +84,30 @@ class WebsocketTransport(BaseTransport):
         self.logger.debug("Negotiate url:{0}".format(negotiate_url))
 
         response = requests.post(
-            negotiate_url, headers=self.headers, verify=self.verify_ssl)
-        self.logger.debug(
-            "Response status code{0}".format(response.status_code))
+            negotiate_url, headers=self.headers, verify=self.verify_ssl
+        )
+        self.logger.debug("Response status code{0}".format(response.status_code))
 
         if response.status_code != 200:
-            raise HubError(response.status_code) \
-                if response.status_code != 401 else UnAuthorizedHubError()
+            raise HubError(
+                response.status_code
+            ) if response.status_code != 401 else UnAuthorizedHubError()
 
         data = response.json()
 
         if "connectionId" in data.keys():
-            self.url = Helpers.encode_connection_id(
-                self.url, data["connectionId"])
+            self.url = Helpers.encode_connection_id(self.url, data["connectionId"])
 
         # Azure
-        if 'url' in data.keys() and 'accessToken' in data.keys():
+        if "url" in data.keys() and "accessToken" in data.keys():
             Helpers.get_logger().debug(
-                "Azure url, reformat headers, token and url {0}".format(data))
-            self.url = data["url"] \
-                if data["url"].startswith("ws") else \
-                Helpers.http_to_websocket(data["url"])
+                "Azure url, reformat headers, token and url {0}".format(data)
+            )
+            self.url = (
+                data["url"]
+                if data["url"].startswith("ws")
+                else Helpers.http_to_websocket(data["url"])
+            )
             self.token = data["accessToken"]
             self.headers = {"Authorization": "Bearer " + self.token}
 
@@ -116,9 +121,7 @@ class WebsocketTransport(BaseTransport):
     async def on_open(self):
         self.logger.debug("-- web socket open --")
         msg = self.protocol.handshake_message()
-        await self._ws.send(
-            self.protocol.encode(msg)
-        )
+        await self._ws.send(self.protocol.encode(msg))
 
     async def on_close(self):
         self.logger.debug("-- web socket close --")
@@ -139,16 +142,13 @@ class WebsocketTransport(BaseTransport):
                 return await self._on_message(messages)
             return []
 
-        return await self._on_message(
-            self.protocol.parse_messages(raw_message))
+        return await self._on_message(self.protocol.parse_messages(raw_message))
 
     async def send(self, message):
         self.logger.debug("Sending message {0}".format(message))
         await asyncio.wait_for(self.handshake_received.wait(), timeout=10)
 
-        await self._ws.send(
-            self.protocol.encode(message)
-        )
+        await self._ws.send(self.protocol.encode(message))
         self.connection_checker.reset()
         if self.reconnection_handler is not None:
             self.reconnection_handler.reset()

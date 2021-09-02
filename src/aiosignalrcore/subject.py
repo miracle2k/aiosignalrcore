@@ -1,9 +1,10 @@
-import uuid
 import threading
+import uuid
 from typing import Any
+
+from .messages.completion_message import CompletionClientStreamMessage
 from .messages.invocation_message import InvocationClientStreamMessage
 from .messages.stream_item_message import StreamItemMessage
-from .messages.completion_message import CompletionClientStreamMessage
 
 
 class Subject(object):
@@ -29,12 +30,11 @@ class Subject(object):
         Raises:
             ValueError: if object is not valid, exception will be raised
         """
-        if self.connection is None\
-                or self.target is None\
-                or self.invocation_id is None:
+        if self.connection is None or self.target is None or self.invocation_id is None:
             raise ValueError(
                 "subject must be passed as an agument to a send function. "
-                + "hub_connection.send([method],[subject]")
+                + "hub_connection.send([method],[subject]"
+            )
 
     def next(self, item: Any):
         """Send next item to the server
@@ -44,25 +44,20 @@ class Subject(object):
         """
         self.check()
         with self.lock:
-            self.connection.transport.send(StreamItemMessage(
-                self.invocation_id,
-                item))
+            self.connection.transport.send(StreamItemMessage(self.invocation_id, item))
 
     def start(self):
-        """Starts streaming
-        """
+        """Starts streaming"""
         self.check()
         with self.lock:
             self.connection.transport.send(
-                InvocationClientStreamMessage(
-                    [self.invocation_id],
-                    self.target,
-                    []))
+                InvocationClientStreamMessage([self.invocation_id], self.target, [])
+            )
 
     def complete(self):
-        """Finish streaming
-        """
+        """Finish streaming"""
         self.check()
         with self.lock:
-            self.connection.transport.send(CompletionClientStreamMessage(
-                self.invocation_id))
+            self.connection.transport.send(
+                CompletionClientStreamMessage(self.invocation_id)
+            )
