@@ -1,7 +1,7 @@
 import asyncio
 from functools import partial
 from typing import Any, Dict, List, Optional
-
+import logging
 import aiohttp
 import websockets
 
@@ -12,6 +12,7 @@ from aiosignalrcore.transport.base_transport import BaseTransport
 from aiosignalrcore.transport.websockets.connection import ConnectionState
 from aiosignalrcore.transport.websockets.reconnection import ConnectionStateChecker, ReconnectionHandler
 
+_logger = logging.getLogger(__name__)
 
 class WebsocketTransport(BaseTransport):
     def __init__(
@@ -43,7 +44,7 @@ class WebsocketTransport(BaseTransport):
             await self.negotiate()
 
         self.state = ConnectionState.connecting
-        self.logger.debug("start url:" + self.url)
+        _logger.debug("start url:" + self.url)
 
         await asyncio.gather(
             self._run(),
@@ -73,16 +74,16 @@ class WebsocketTransport(BaseTransport):
 
     async def negotiate(self):
         negotiate_url = Helpers.get_negotiate_url(self.url)
-        self.logger.debug("Negotiate url:{0}".format(negotiate_url))
+        _logger.debug("Negotiate url:{0}".format(negotiate_url))
 
         async with aiohttp.ClientSession() as session:
-            response = session.post(negotiate_url, headers=self.headers, verify=self.verify_ssl)
-        self.logger.debug("Response status code{0}".format(response.status_code))
+            async with session.post(negotiate_url, headers=self.headers) as response:
+                _logger.debug("Response status code{0}".format(response.status))
 
-        if response.status_code != 200:
-            raise HubError(response.status_code) if response.status_code != 401 else UnAuthorizedHubError()
+                if response.status != 200:
+                    raise HubError(response.status) if response.status != 401 else UnAuthorizedHubError()
 
-        data = response.json()
+                data = await response.json()
 
         if "connectionId" in data.keys():
             self.url = Helpers.encode_connection_id(self.url, data["connectionId"])
@@ -95,25 +96,25 @@ class WebsocketTransport(BaseTransport):
             self.headers = {"Authorization": "Bearer " + self.token}
 
     def evaluate_handshake(self, message):
-        self.logger.debug("Evaluating handshake {0}".format(message))
+        _logger.debug("Evaluating handshake {0}".format(message))
         msg, messages = self.protocol.decode_handshake(message)
         if msg.error:
             raise ValueError("Handshake error {0}".format(msg.error))
         return messages
 
     async def on_open(self):
-        self.logger.debug("-- web socket open --")
+        _logger.debug("-- web socket open --")
         msg = self.protocol.handshake_message()
         await self._ws.send(self.protocol.encode(msg))
 
     async def on_close(self):
-        self.logger.debug("-- web socket close --")
+        _logger.debug("-- web socket close --")
         self.state = ConnectionState.disconnected
         if self._on_close is not None and callable(self._on_close):
             await self._on_close()
 
     async def on_message(self, raw_message) -> List[Any]:
-        self.logger.debug("Message received{0}".format(raw_message))
+        _logger.debug("Message received{0}".format(raw_message))
         if not self.handshake_received.is_set():
             messages = self.evaluate_handshake(raw_message)
             self.handshake_received.set()
@@ -128,7 +129,7 @@ class WebsocketTransport(BaseTransport):
         return await self._on_message(self.protocol.parse_messages(raw_message))
 
     async def send(self, message) -> None:
-        self.logger.debug("Sending message {0}".format(message))
+        _logger.debug("Sending message {0}".format(message))
         await asyncio.wait_for(self.handshake_received.wait(), timeout=10)
 
         await self._ws.send(self.protocol.encode(message))

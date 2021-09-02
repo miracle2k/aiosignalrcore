@@ -1,12 +1,14 @@
-from ..helpers import Helpers
+import logging
 from ..protocol.json_hub_protocol import JsonHubProtocol
+
+
+_logger = logging.getLogger(__name__)
 
 
 class BaseTransport:
     def __init__(self, protocol=JsonHubProtocol(), on_message=None):
         self.protocol = protocol
         self._on_message = on_message
-        self.logger = Helpers.get_logger()
         self._on_open = None
         self._on_close = None
 

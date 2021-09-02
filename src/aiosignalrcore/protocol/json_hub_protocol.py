@@ -43,6 +43,9 @@ class JsonHubProtocol(BaseHubProtocol):
                 result.append(self.get_message(dict_message))
         return result
 
+    def write_message(self, hub_message):
+        raise NotImplementedError
+
     def encode(self, message):
         _logger.debug(self.encoder.encode(message) + self.record_separator)
         return self.encoder.encode(message) + self.record_separator
