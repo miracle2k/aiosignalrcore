@@ -38,8 +38,9 @@ class WebsocketTransport(Transport):
         self._skip_negotiation = skip_negotiation
 
         self._state = ConnectionState.disconnected
+        self._connected = asyncio.Event()
+
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
-        self._handshake_received = asyncio.Event()
 
         # self.enable_trace = enable_trace
         # self.skip_negotiation = skip_negotiation
@@ -48,11 +49,27 @@ class WebsocketTransport(Transport):
         # self.connection_checker = ConnectionStateChecker(partial(self.send, PingMessage()), keep_alive_interval)
         # self.reconnection_handler = reconnection_handler
 
+    def _set_state(self, state: ConnectionState) -> None:
+        if state == ConnectionState.connected:
+            self._connected.set()
+        else:
+            self._connected.clear()
+        self._state = state
+
+    async def _get_connection(self) -> websockets.WebSocketClientProtocol:
+        await self._wait()
+        if not self._ws:
+            raise RuntimeError
+        return self._ws
+
+    async def _wait(self) -> None:
+        await asyncio.wait_for(self._connected.wait(), timeout=10)
+
     async def run(self) -> None:
         if not self._skip_negotiation:
-            await self.negotiate()
+            await self._negotiate()
 
-        self._state = ConnectionState.connecting
+        self._set_state(ConnectionState.connecting)
         _logger.debug("start url:" + self._url)
 
         await asyncio.gather(
@@ -65,6 +82,7 @@ class WebsocketTransport(Transport):
 
         while True:
             try:
+                # TODO: tuning
                 async with websockets.connect(
                     self._url,
                     max_size=max_size,
@@ -77,11 +95,9 @@ class WebsocketTransport(Transport):
                         await self._on_raw_message(message)
 
             except websockets.exceptions.ConnectionClosed:
-                self._state = ConnectionState.disconnected
-                self._handshake_received.clear()
                 await self._on_close()
 
-    async def negotiate(self):
+    async def _negotiate(self):
         negotiate_url = Helpers.get_negotiate_url(self._url)
         _logger.debug("Negotiate url:{0}".format(negotiate_url))
 
@@ -124,10 +140,9 @@ class WebsocketTransport(Transport):
 
     async def _on_raw_message(self, raw_message: Union[str, bytes]) -> None:
         _logger.debug("Message received %s", raw_message)
-        if not self._handshake_received.is_set():
+        if not self._connected.is_set():
             messages = self.evaluate_handshake(raw_message)
-            self._handshake_received.set()
-            self._state = ConnectionState.connected
+            self._set_state(ConnectionState.connected)
             if callable(self._on_open):
                 await self._on_open()
 
@@ -143,13 +158,8 @@ class WebsocketTransport(Transport):
 
     async def send(self, message) -> None:
         _logger.debug("Sending message {0}".format(message))
-        await asyncio.wait_for(self._handshake_received.wait(), timeout=10)
-        assert self._ws
-
-        await self._ws.send(self._protocol.encode(message))
+        conn = await self._get_connection()
+        await conn.send(self._protocol.encode(message))
         # self.connection_checker.reset()
         # if self.reconnection_handler is not None:
         #     self.reconnection_handler.reset()
-
-    async def _wait(self) -> None:
-        ...
