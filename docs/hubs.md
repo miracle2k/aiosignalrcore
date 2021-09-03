@@ -12,11 +12,11 @@ The SignalR Protocol is a protocol for two-way RPC over any Message-based transp
 
 The SignalR Protocol requires the following attributes from the underlying transport.
 
-* Reliable, in-order, delivery of messages - Specifically, the SignalR protocol provides no facility for retransmission or reordering of messages. If that is important to an application scenario, the application must either use a transport that guarantees it (i.e. TCP) or provide their own system for managing message order.
+* Reliable, in-order, delivery of messages - Specifically, the SignalR protocol provides no facility for retransmission or reordering of messages If that is important to an application scenario, the application must either use a transport that guarantees it (i.e. TCP) or provide their own system for managing message order.
 
 ## Overview
 
-This document describes two encodings of the SignalR protocol: [JSON](http://www.json.org/) and [MessagePack](http://msgpack.org/). Only one format can be used for the duration of a connection, and the format must be agreed on by both sides after opening the connection and before sending any other messages. However, each format shares a similar overall structure.
+This document describes two encodings of the SignalR protocol: [JSON](http://www.json.org/) and [MessagePack](http://msgpack.org/). Only one format can be used for the duration of a connection, and the format must be agreed on by both sides after opening the connection and before sending any other messages However, each format shares a similar overall structure.
 
 In the SignalR protocol, the following types of messages can be sent:
 
@@ -84,7 +84,7 @@ In order to perform a single invocation, the Caller follows the following basic 
 
 The `Target` of an `Invocation` message must refer to a specific method, overloading is **not** permitted. In the .NET Binder, the `Target` value for a method is defined as the simple name of the Method (i.e. without qualifying type name, since a SignalR endpoint is specific to a single Hub class). `Target` is case-sensitive
 
-**NOTE**: `Invocation ID`s are arbitrarily chosen by the Caller and the Callee is expected to use the same string in all response messages. Callees may establish reasonable limits on `Invocation ID` lengths and terminate the connection when an `Invocation ID` that is too long is received.
+**NOTE**: `Invocation ID`s are arbitrarily chosen by the Caller and the Callee is expected to use the same string in all response messages Callees may establish reasonable limits on `Invocation ID` lengths and terminate the connection when an `Invocation ID` that is too long is received.
 
 ## Message Headers
 

@@ -1,6 +1,6 @@
 import asyncio
-from collections import Callable
 import logging
+from collections import Callable
 
 # from functools import partial
 from typing import Awaitable, Dict, Optional, Union
@@ -49,12 +49,21 @@ class WebsocketTransport(Transport):
 
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
+        self._open_callback: Optional[Callable[[], Awaitable[None]]] = None
+        self._close_callback: Optional[Callable[[], Awaitable[None]]] = None
+
         # self.enable_trace = enable_trace
         # self.skip_negotiation = skip_negotiation
         # self.token = None  # auth
         # self.verify_ssl = verify_ssl
         # self.connection_checker = ConnectionStateChecker(partial(self.send, PingMessage()), keep_alive_interval)
         # self.reconnection_handler = reconnection_handler
+
+    def on_open(self, callback: Callable[[], Awaitable[None]]):
+        self._open_callback = callback
+
+    def on_close(self, callback: Callable[[], Awaitable[None]]):
+        self._close_callback = callback
 
     def _set_state(self, state: ConnectionState) -> None:
         if state == ConnectionState.connected:
@@ -104,6 +113,8 @@ class WebsocketTransport(Transport):
                     extra_headers=self._headers,
                 ) as self._ws:
                     await self._on_open()
+                    if self._open_callback:
+                        await self._open_callback()
 
                     while True:
                         message = await self._ws.recv()
@@ -111,6 +122,8 @@ class WebsocketTransport(Transport):
 
             except websockets.exceptions.ConnectionClosed:
                 await self._on_close()
+                if self._close_callback:
+                    await self._close_callback()
 
     async def _negotiate(self):
         negotiate_url = Helpers.get_negotiate_url(self._url)
@@ -152,8 +165,7 @@ class WebsocketTransport(Transport):
 
     async def _on_close(self) -> None:
         _logger.debug("-- web socket close --")
-        self._state = ConnectionState.disconnected
-        await self._on_close()
+        self._set_state(ConnectionState.disconnected)
 
     async def _on_raw_message(self, raw_message: Union[str, bytes]) -> None:
         _logger.debug("Message received %s", raw_message)

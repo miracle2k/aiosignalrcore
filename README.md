@@ -22,7 +22,7 @@ The names of all modules, classes, and methods are preserved.
 import asyncio
 import logging
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.messages.completion_message import CompletionMessage
+from aiosignalrcore.messages import CompletionMessage
 from aiosignalrcore.transport.websocket import ConnectionState
 
 

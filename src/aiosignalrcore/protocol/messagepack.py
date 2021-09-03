@@ -4,15 +4,19 @@ from typing import List, Union
 
 import msgpack  # type: ignore
 
-from aiosignalrcore.messages import CancelInvocationMessage  # 5
-from aiosignalrcore.messages import CloseMessage  # 7
-from aiosignalrcore.messages import CompletionMessage  # 3
-from aiosignalrcore.messages import InvocationClientStreamMessage  # 1
-from aiosignalrcore.messages import Message  # type: ignore
-from aiosignalrcore.messages import PingMessage  # 6
-from aiosignalrcore.messages import StreamInvocationMessage  # 4
-from aiosignalrcore.messages import StreamItemMessage  # 2
-from aiosignalrcore.messages import HandshakeRequestMessage, HandshakeResponseMessage, InvocationMessage
+from aiosignalrcore.messages import (
+    CancelInvocationMessage,
+    CloseMessage,
+    CompletionMessage,
+    HandshakeRequestMessage,
+    HandshakeResponseMessage,
+    InvocationClientStreamMessage,
+    InvocationMessage,
+    Message,
+    PingMessage,
+    StreamInvocationMessage,
+    StreamItemMessage,
+)
 from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)

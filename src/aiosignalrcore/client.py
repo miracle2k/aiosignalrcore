@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union
 
 from aiosignalrcore.exceptions import ServerError
 from aiosignalrcore.handlers import InvocationHandler, StreamHandler
@@ -33,6 +33,7 @@ class SignalRClient:
         self._url = url
         self._protocol = protocol or JsonProtocol()
         self._headers = headers or {}
+
         self._handlers: List[Tuple[str, Callable]] = []
         self._stream_handlers: List[Union[StreamHandler, InvocationHandler]] = []
 
@@ -54,15 +55,21 @@ class SignalRClient:
         _logger.debug("Connection started")
         return await self._transport.run()
 
-    def on(self, event: str, callback_function: Callable) -> None:
+    def on(self, event: str, callback: Callable[..., Awaitable[None]]) -> None:
         """Register a callback on the specified event
         Args:
             event (string):  Event name
-            callback_function (Function): callback function,
+            callback (Function): callback function,
                 arguments will be binded
         """
         _logger.debug("Handler registered started {0}".format(event))
-        self._handlers.append((event, callback_function))
+        self._handlers.append((event, callback))
+
+    def on_open(self, callback: Callable[[], Awaitable[None]]) -> None:
+        self._transport.on_open(callback)
+
+    def on_close(self, callback: Callable[[], Awaitable[None]]) -> None:
+        self._transport.on_close(callback)
 
     async def send(self, method: str, arguments: Union[Subject, List[Dict[str, Any]]], on_invocation=None) -> None:
         """Sends a message
