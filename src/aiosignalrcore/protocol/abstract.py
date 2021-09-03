@@ -1,20 +1,16 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, List, Tuple, Union
-
-from aiosignalrcore.messages.base_message import BaseMessage
+from typing import Any, Dict, Iterable, Tuple, Union
 
 # TODO: mapping of message types to classes
-from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage  # 5
-from aiosignalrcore.messages.close_message import CloseMessage  # 7
-from aiosignalrcore.messages.completion_message import CompletionMessage  # 3
-from aiosignalrcore.messages.handshake import HandshakeRequestMessage
-from aiosignalrcore.messages.handshake import HandshakeResponseMessage
-from aiosignalrcore.messages.invocation_message import InvocationMessage  # 1
-from aiosignalrcore.messages.message_type import MessageType
-from aiosignalrcore.messages.ping_message import PingMessage  # 6
-from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage  # 4
-from aiosignalrcore.messages.stream_item_message import StreamItemMessage  # 2
+from aiosignalrcore.messages import CancelInvocationMessage  # 5
+from aiosignalrcore.messages import CloseMessage  # 7
+from aiosignalrcore.messages import CompletionMessage  # 3
+from aiosignalrcore.messages import InvocationMessage  # 1
+from aiosignalrcore.messages import PingMessage  # 6
+from aiosignalrcore.messages import StreamInvocationMessage  # 4
+from aiosignalrcore.messages import StreamItemMessage  # 2
+from aiosignalrcore.messages import HandshakeRequestMessage, HandshakeResponseMessage, Message, MessageType
 
 
 class Protocol(ABC):
@@ -25,19 +21,19 @@ class Protocol(ABC):
         self.record_separator = record_separator
 
     @abstractmethod
-    def parse_raw_message(self, raw_message: Union[str, bytes]) -> Iterable[BaseMessage]:
+    def parse_raw_message(self, raw_message: Union[str, bytes]) -> Iterable[Message]:
         ...
 
     @abstractmethod
-    def write_message(self, message: BaseMessage):
+    def write_message(self, message: Message):
         ...
 
     @abstractmethod
-    def encode(self, message: Union[BaseMessage, HandshakeRequestMessage]) -> bytes:
+    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> bytes:
         ...
 
     @staticmethod
-    def parse_message(dict_message: Dict[str, Any]) -> BaseMessage:
+    def parse_message(dict_message: Dict[str, Any]) -> Message:
         if 'type' in dict_message:
             message_type = MessageType(dict_message['type'])
         else:
@@ -65,7 +61,7 @@ class Protocol(ABC):
         else:
             raise NotImplementedError
 
-    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Iterable[BaseMessage]]:
+    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Iterable[Message]]:
         messages = raw_message.split(self.record_separator)
         messages = list(filter(bool, messages))
         data = json.loads(messages[0])

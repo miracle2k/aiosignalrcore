@@ -4,17 +4,15 @@ from typing import List, Union
 
 import msgpack  # type: ignore
 
-from aiosignalrcore.messages.base_message import BaseMessage  # type: ignore
-from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage  # 5
-from aiosignalrcore.messages.close_message import CloseMessage  # 7
-from aiosignalrcore.messages.completion_message import CompletionMessage  # 3
-from aiosignalrcore.messages.handshake import HandshakeRequestMessage
-from aiosignalrcore.messages.handshake import HandshakeResponseMessage
-from aiosignalrcore.messages.invocation_message import InvocationClientStreamMessage  # 1
-from aiosignalrcore.messages.invocation_message import InvocationMessage
-from aiosignalrcore.messages.ping_message import PingMessage  # 6
-from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage  # 4
-from aiosignalrcore.messages.stream_item_message import StreamItemMessage  # 2
+from aiosignalrcore.messages import CancelInvocationMessage  # 5
+from aiosignalrcore.messages import CloseMessage  # 7
+from aiosignalrcore.messages import CompletionMessage  # 3
+from aiosignalrcore.messages import InvocationClientStreamMessage  # 1
+from aiosignalrcore.messages import Message  # type: ignore
+from aiosignalrcore.messages import PingMessage  # 6
+from aiosignalrcore.messages import StreamInvocationMessage  # 4
+from aiosignalrcore.messages import StreamItemMessage  # 2
+from aiosignalrcore.messages import HandshakeRequestMessage, HandshakeResponseMessage, InvocationMessage
 from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)
@@ -46,7 +44,7 @@ class MessagepackProtocol(Protocol):
                 values = msgpack.unpackb(raw[offset + 1 : offset + length + 1])
                 offset = offset + length + 1
                 message = self._decode_message(values)
-                messages.append(message)
+                messages(message)
         except Exception as ex:
             _logger.error("Parse messages Error {0}".format(ex))
             _logger.error("raw msg '{0}'".format(raw))
@@ -64,7 +62,7 @@ class MessagepackProtocol(Protocol):
             _logger.error(ex)
             raise ex
 
-    def encode(self, message: Union[BaseMessage, HandshakeRequestMessage]):
+    def encode(self, message: Union[Message, HandshakeRequestMessage]):
         if isinstance(message, HandshakeRequestMessage):
             content = json.dumps(message.__dict__)
             return content + self.record_separator
@@ -74,7 +72,7 @@ class MessagepackProtocol(Protocol):
         varint_length = self._to_varint(len(encoded_message))
         return varint_length + encoded_message
 
-    def _encode_message(self, message: BaseMessage) -> List[Union[str, int, bool]]:
+    def _encode_message(self, message: Message) -> List[Union[str, int, bool]]:
         result = []
 
         # sort attributes
@@ -86,7 +84,7 @@ class MessagepackProtocol(Protocol):
                     result.append(getattr(message, attribute))
         return result
 
-    def _decode_message(self, raw) -> BaseMessage:
+    def _decode_message(self, raw) -> Message:
         # {} {"error"}
         # [1, Headers, InvocationId, Target, [Arguments], [StreamIds]]
         # [2, Headers, InvocationId, Item]
@@ -96,6 +94,7 @@ class MessagepackProtocol(Protocol):
         # [6]
         # [7, Error, AllowReconnect?]
 
+        # TODO: type_, MessageType, unpack values
         if raw[0] == 1:  # InvocationMessage
             if len(raw[5]) > 0:
                 return InvocationClientStreamMessage(headers=raw[1], stream_ids=raw[5], target=raw[3], arguments=raw[4])
@@ -111,6 +110,7 @@ class MessagepackProtocol(Protocol):
             return StreamItemMessage(headers=raw[1], invocation_id=raw[2], item=raw[3])
 
         elif raw[0] == 3:  # CompletionMessage
+            # TODO: kind enum
             result_kind = raw[3]
             if result_kind == 1:
                 return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=None, error=raw[4])

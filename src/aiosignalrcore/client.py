@@ -3,15 +3,18 @@ import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from aiosignalrcore.exceptions import ServerError
-from aiosignalrcore.hub.handlers import InvocationHandler, StreamHandler
-from aiosignalrcore.messages.base_message import BaseMessage
-from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage
-from aiosignalrcore.messages.close_message import CloseMessage
-from aiosignalrcore.messages.completion_message import CompletionMessage
-from aiosignalrcore.messages.invocation_message import InvocationMessage
-from aiosignalrcore.messages.message_type import MessageType
-from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
-from aiosignalrcore.messages.stream_item_message import StreamItemMessage
+from aiosignalrcore.handlers import InvocationHandler, StreamHandler
+from aiosignalrcore.messages import (
+    CancelInvocationMessage,
+    CloseMessage,
+    CompletionMessage,
+    InvocationMessage,
+    Message,
+    MessageType,
+    PingMessage,
+    StreamInvocationMessage,
+    StreamItemMessage,
+)
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.protocol.json import JsonProtocol
 from aiosignalrcore.subject import Subject
@@ -21,7 +24,6 @@ _logger = logging.getLogger(__name__)
 
 
 class SignalRClient:
-    # FIXME: protocol type
     def __init__(
         self,
         url: str,
@@ -37,10 +39,9 @@ class SignalRClient:
         self._transport = WebsocketTransport(
             url=self._url,
             protocol=self._protocol,
+            callback=self._on_message,
             headers=self._headers,
         )
-        # FIXME
-        self._transport._on_message = self._on_message  # type: ignore
 
     async def run(self) -> None:
 
@@ -92,14 +93,14 @@ class SignalRClient:
         else:
             raise NotImplementedError
 
-    async def _on_message(self, message: BaseMessage) -> None:
+    async def _on_message(self, message: Message) -> None:
         # FIXME: When?
-        if message.type == MessageType.invocation_binding_failure:
+        if message.type_ == MessageType.invocation_binding_failure:
             raise Exception
             # _logger.error(message)
             # self._on_error(message)
 
-        elif message.type == MessageType.ping:
+        elif isinstance(message, PingMessage):
             pass
 
         elif isinstance(message, InvocationMessage):

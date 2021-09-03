@@ -1,8 +1,9 @@
 import asyncio
+from collections import Callable
 import logging
 
 # from functools import partial
-from typing import Dict, Optional, Union
+from typing import Awaitable, Dict, Optional, Union
 
 import aiohttp
 import websockets
@@ -10,9 +11,9 @@ from websockets.protocol import State
 
 from aiosignalrcore.exceptions import AuthorizationError, HubError
 from aiosignalrcore.helpers import Helpers
-from aiosignalrcore.messages.base_message import BaseMessage
+from aiosignalrcore.messages import Message
 
-# from aiosignalrcore.messages.ping_message import PingMessage
+# from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.transport.abstract import ConnectionState, Transport
 
@@ -26,6 +27,7 @@ class WebsocketTransport(Transport):
         self,
         url: str,
         protocol: Protocol,
+        callback: Callable[[Message], Awaitable[None]],
         headers: Optional[Dict[str, str]] = None,
         skip_negotiation: bool = False,
         # keep_alive_interval: int = 15,
@@ -37,11 +39,13 @@ class WebsocketTransport(Transport):
         super().__init__()
         self._url = url
         self._protocol = protocol
+        self._callback = callback
         self._headers = headers or {}
         self._skip_negotiation = skip_negotiation
 
         self._state = ConnectionState.disconnected
         self._connected = asyncio.Event()
+        self._handshake = asyncio.Event()
 
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
 
@@ -57,6 +61,7 @@ class WebsocketTransport(Transport):
             self._connected.set()
         else:
             self._connected.clear()
+            self._handshake.clear()
         self._state = state
 
     async def _get_connection(self) -> websockets.WebSocketClientProtocol:
@@ -139,9 +144,11 @@ class WebsocketTransport(Transport):
 
     async def _on_open(self) -> None:
         _logger.debug("-- web socket open --")
-        msg = self._protocol.handshake_message()
-        assert self._ws
-        await self._ws.send(self._protocol.encode(msg))
+        if not self._handshake.is_set():
+            self._handshake.set()
+            msg = self._protocol.handshake_message()
+            assert self._ws
+            await self._ws.send(self._protocol.encode(msg))
 
     async def _on_close(self) -> None:
         _logger.debug("-- web socket close --")
@@ -151,20 +158,19 @@ class WebsocketTransport(Transport):
     async def _on_raw_message(self, raw_message: Union[str, bytes]) -> None:
         _logger.debug("Message received %s", raw_message)
         if not self._connected.is_set():
+
             messages = self.evaluate_handshake(raw_message)
             self._set_state(ConnectionState.connected)
-            if callable(self._on_open):
-                await self._on_open()
+            await self._on_open()
 
-            if len(messages) > 0:
-                for message in messages:
-                    await self._on_message(message)
+            for message in messages:
+                await self._on_message(message)
 
         for message in self._protocol.parse_raw_message(raw_message):
             await self._on_message(message)
 
-    async def _on_message(self, message: BaseMessage) -> None:
-        ...
+    async def _on_message(self, message: Message) -> None:
+        await self._callback(message)
 
     async def send(self, message) -> None:
         _logger.debug("Sending message {0}".format(message))

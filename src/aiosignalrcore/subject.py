@@ -2,9 +2,7 @@ import threading
 import uuid
 from typing import Any
 
-from .messages.completion_message import CompletionClientStreamMessage
-from .messages.invocation_message import InvocationClientStreamMessage
-from .messages.stream_item_message import StreamItemMessage
+from .messages import CompletionClientStreamMessage, InvocationClientStreamMessage, StreamItemMessage
 
 
 class Subject(object):

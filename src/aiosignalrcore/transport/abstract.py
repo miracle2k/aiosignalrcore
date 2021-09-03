@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import IntEnum, auto
 from typing import Union
 
-from aiosignalrcore.messages.base_message import BaseMessage
+from aiosignalrcore.messages import Message
 from aiosignalrcore.protocol.abstract import Protocol
 
 
@@ -38,7 +38,7 @@ class Transport(ABC):
         ...
 
     @abstractmethod
-    async def _on_message(self, message: BaseMessage) -> None:
+    async def _on_message(self, message: Message) -> None:
         ...
 
     @abstractmethod
