@@ -10,3 +10,9 @@ class ConnectionError(HubError):
     """Hub connection error"""
 
     pass
+
+
+class ServerError(HubError):
+    """Hub server error"""
+
+    pass

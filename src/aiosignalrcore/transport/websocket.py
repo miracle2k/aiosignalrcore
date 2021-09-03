@@ -1,18 +1,21 @@
 import asyncio
 import logging
-from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Union
+
+# from functools import partial
+from typing import Dict, Optional, Union
 
 import aiohttp
 import websockets
+from websockets.protocol import State
 
 from aiosignalrcore.exceptions import AuthorizationError, HubError
 from aiosignalrcore.helpers import Helpers
 from aiosignalrcore.messages.base_message import BaseMessage
-from aiosignalrcore.messages.ping_message import PingMessage
+
+# from aiosignalrcore.messages.ping_message import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
-from aiosignalrcore.transport.abstract import Transport
-from aiosignalrcore.transport.abstract import ConnectionState
+from aiosignalrcore.transport.abstract import ConnectionState, Transport
+
 # from aiosignalrcore.transport.websocket.reconnection import ConnectionStateChecker, ReconnectionHandler
 
 _logger = logging.getLogger(__name__)
@@ -63,7 +66,14 @@ class WebsocketTransport(Transport):
         return self._ws
 
     async def _wait(self) -> None:
-        await asyncio.wait_for(self._connected.wait(), timeout=10)
+        for _ in range(100):
+            await asyncio.wait_for(self._connected.wait(), timeout=10)
+            if not self._ws:
+                raise RuntimeError
+            elif not self._ws.state == State.OPEN:
+                await asyncio.sleep(0.1)
+            else:
+                break
 
     async def run(self) -> None:
         if not self._skip_negotiation:
@@ -150,7 +160,7 @@ class WebsocketTransport(Transport):
                 for message in messages:
                     await self._on_message(message)
 
-        for message in self._protocol.parse_messages(raw_message):
+        for message in self._protocol.parse_raw_message(raw_message):
             await self._on_message(message)
 
     async def _on_message(self, message: BaseMessage) -> None:

@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import List, Union
 
 import msgpack  # type: ignore
 
@@ -7,8 +8,8 @@ from aiosignalrcore.messages.base_message import BaseMessage  # type: ignore
 from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage  # 5
 from aiosignalrcore.messages.close_message import CloseMessage  # 7
 from aiosignalrcore.messages.completion_message import CompletionMessage  # 3
-from aiosignalrcore.messages.handshake.request import HandshakeRequestMessage
-from aiosignalrcore.messages.handshake.response import HandshakeResponseMessage
+from aiosignalrcore.messages.handshake import HandshakeRequestMessage
+from aiosignalrcore.messages.handshake import HandshakeResponseMessage
 from aiosignalrcore.messages.invocation_message import InvocationClientStreamMessage  # 1
 from aiosignalrcore.messages.invocation_message import InvocationMessage
 from aiosignalrcore.messages.ping_message import PingMessage  # 6
@@ -36,7 +37,7 @@ class MessagepackProtocol(Protocol):
     def __init__(self):
         super().__init__("messagepack", 1, "Text", chr(0x1E))
 
-    def parse_messages(self, raw):
+    def parse_raw_message(self, raw):
         try:
             messages = []
             offset = 0
@@ -55,7 +56,7 @@ class MessagepackProtocol(Protocol):
         try:
             has_various_messages = 0x1E in raw_message
             handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
-            messages = self.parse_messages(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
+            messages = self.parse_raw_message(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
             data = json.loads(handshake_data)
             return HandshakeResponseMessage(data.get("error", None)), messages
         except Exception as ex:
@@ -63,7 +64,7 @@ class MessagepackProtocol(Protocol):
             _logger.error(ex)
             raise ex
 
-    def encode(self, message):
+    def encode(self, message: Union[BaseMessage, HandshakeRequestMessage]):
         if type(message) is HandshakeRequestMessage:
             content = json.dumps(message.__dict__)
             return content + self.record_separator
@@ -73,7 +74,7 @@ class MessagepackProtocol(Protocol):
         varint_length = self._to_varint(len(encoded_message))
         return varint_length + encoded_message
 
-    def _encode_message(self, message):
+    def _encode_message(self, message: BaseMessage) -> List[Union[str, int, bool]]:
         result = []
 
         # sort attributes
@@ -132,7 +133,7 @@ class MessagepackProtocol(Protocol):
             return PingMessage()
 
         elif raw[0] == 7:  # CloseMessageEncoding
-            return CloseMessage(error=raw[1])  # AllowReconnect is missing
+            return CloseMessage(*raw)  # AllowReconnect is missing
         # TODO: remove
         print(".......................................")
         print(raw)

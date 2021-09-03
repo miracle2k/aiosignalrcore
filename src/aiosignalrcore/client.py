@@ -1,7 +1,8 @@
 import logging
 import uuid
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from aiosignalrcore.exceptions import ServerError
 from aiosignalrcore.hub.handlers import InvocationHandler, StreamHandler
 from aiosignalrcore.messages.base_message import BaseMessage
 from aiosignalrcore.messages.cancel_invocation_message import CancelInvocationMessage
@@ -12,10 +13,9 @@ from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.messages.stream_invocation_message import StreamInvocationMessage
 from aiosignalrcore.messages.stream_item_message import StreamItemMessage
 from aiosignalrcore.protocol.abstract import Protocol
+from aiosignalrcore.protocol.json import JsonProtocol
 from aiosignalrcore.subject import Subject
 from aiosignalrcore.transport.websocket import WebsocketTransport
-
-from aiosignalrcore.protocol.json import JsonProtocol
 
 _logger = logging.getLogger(__name__)
 
@@ -92,37 +92,36 @@ class SignalRClient:
         else:
             raise NotImplementedError
 
-    async def _on_message(self, messages: Iterable[BaseMessage]) -> None:
-        for message in messages:
-            # FIXME: When?
-            if message.type == MessageType.invocation_binding_failure:
-                raise Exception
-                # _logger.error(message)
-                # self._on_error(message)
+    async def _on_message(self, message: BaseMessage) -> None:
+        # FIXME: When?
+        if message.type == MessageType.invocation_binding_failure:
+            raise Exception
+            # _logger.error(message)
+            # self._on_error(message)
 
-            elif message.type == MessageType.ping:
-                pass
+        elif message.type == MessageType.ping:
+            pass
 
-            elif isinstance(message, InvocationMessage):
-                await self._on_invocation_message(message)
+        elif isinstance(message, InvocationMessage):
+            await self._on_invocation_message(message)
 
-            elif isinstance(message, CloseMessage):
-                await self._on_close_message(message)
+        elif isinstance(message, CloseMessage):
+            await self._on_close_message(message)
 
-            elif isinstance(message, CompletionMessage):
-                await self._on_completion_message(message)
+        elif isinstance(message, CompletionMessage):
+            await self._on_completion_message(message)
 
-            elif isinstance(message, StreamItemMessage):
-                await self._on_stream_item_message(message)
+        elif isinstance(message, StreamItemMessage):
+            await self._on_stream_item_message(message)
 
-            elif isinstance(message, StreamInvocationMessage):
-                pass
+        elif isinstance(message, StreamInvocationMessage):
+            pass
 
-            elif isinstance(message, CancelInvocationMessage):
-                await self._on_cancel_invocation_message(message)
+        elif isinstance(message, CancelInvocationMessage):
+            await self._on_cancel_invocation_message(message)
 
-            else:
-                raise NotImplementedError
+        else:
+            raise NotImplementedError
 
     async def stream(self, event, event_params):
         """Starts server streaming
@@ -218,4 +217,4 @@ class SignalRClient:
 
     async def _on_close_message(self, message: CloseMessage) -> None:
         if message.error:
-            raise Exception(message.error)
+            raise ServerError(message.error)

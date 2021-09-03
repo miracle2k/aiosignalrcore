@@ -1,6 +1,8 @@
 import json
 import logging
 from json import JSONEncoder
+from typing import Dict, List, Union
+from aiosignalrcore.messages.base_message import BaseMessage
 
 from aiosignalrcore.messages.message_type import MessageType
 from aiosignalrcore.protocol.abstract import Protocol
@@ -28,22 +30,23 @@ class JsonProtocol(Protocol):
         super().__init__("json", 1, "Text", chr(0x1E))
         self.encoder = MyEncoder()
 
-    def parse_messages(self, raw):
-        _logger.debug("Raw message incomming: ")
-        _logger.debug(raw)
+    def parse_raw_message(self, raw_message: Union[str, bytes]) -> List[BaseMessage]:
+        if isinstance(raw_message, bytes):
+            raw_message = raw_message.decode()
+
         raw_messages = [
             record.replace(self.record_separator, "")
-            for record in raw.split(self.record_separator)
+            for record in raw_message.split(self.record_separator)
             if record is not None and record != "" and record != self.record_separator
         ]
         result = []
-        for raw_message in raw_messages:
-            dict_message = json.loads(raw_message)
-            if len(dict_message.keys()) > 0:
-                result.append(self.get_message(dict_message))
+        for item in raw_messages:
+            dict_message = json.loads(item)
+            if dict_message:
+                result.append(self.parse_message(dict_message))
         return result
 
-    def write_message(self, hub_message):
+    def write_message(self, message):
         raise NotImplementedError
 
     def encode(self, message):
