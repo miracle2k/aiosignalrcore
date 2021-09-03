@@ -65,7 +65,7 @@ class MessagepackProtocol(Protocol):
             raise ex
 
     def encode(self, message: Union[BaseMessage, HandshakeRequestMessage]):
-        if type(message) is HandshakeRequestMessage:
+        if isinstance(message, HandshakeRequestMessage):
             content = json.dumps(message.__dict__)
             return content + self.record_separator
 

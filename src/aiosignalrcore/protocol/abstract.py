@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 from aiosignalrcore.messages.base_message import BaseMessage
 
@@ -33,7 +33,7 @@ class Protocol(ABC):
         ...
 
     @abstractmethod
-    def encode(self, message: BaseMessage) -> bytes:
+    def encode(self, message: Union[BaseMessage, HandshakeRequestMessage]) -> bytes:
         ...
 
     @staticmethod
@@ -65,9 +65,9 @@ class Protocol(ABC):
         else:
             raise NotImplementedError
 
-    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Any]:
+    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Iterable[BaseMessage]]:
         messages = raw_message.split(self.record_separator)
-        messages = list(filter(lambda x: x != "", messages))
+        messages = list(filter(bool, messages))
         data = json.loads(messages[0])
         idx = raw_message.index(self.record_separator)
         return (
