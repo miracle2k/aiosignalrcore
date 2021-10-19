@@ -36,22 +36,28 @@ class MessagepackProtocol(Protocol):
     ]
 
     def __init__(self):
-        super().__init__("messagepack", 1, "Text", chr(0x1E))
+        super().__init__("messagepack", 1, chr(0x1E))
 
-    def decode(self, raw):
-        try:
-            messages = []
-            offset = 0
-            while offset < len(raw):
-                length = msgpack.unpackb(raw[offset : offset + 1])
-                values = msgpack.unpackb(raw[offset + 1 : offset + length + 1])
-                offset = offset + length + 1
-                message = self._decode_message(values)
-                messages(message)
-        except Exception as ex:
-            _logger.error("Parse messages Error {0}".format(ex))
-            _logger.error("raw msg '{0}'".format(raw))
+    def decode(self, raw_message: Union[str, bytes]) -> List[Message]:
+        messages: List[Message] = []
+        offset = 0
+        while offset < len(raw_message):
+            length = msgpack.unpackb(raw_message[offset : offset + 1])
+            values = msgpack.unpackb(raw_message[offset + 1 : offset + length + 1])
+            offset += length + 1
+            message = self._decode_message(values)
+            messages.append(message)
         return messages
+
+    def encode(self, message: Union[Message, HandshakeRequestMessage]):
+        if isinstance(message, HandshakeRequestMessage):
+            content = json.dumps(message.__dict__)
+            return content + self.record_separator
+
+        msg = self._encode_message(message)
+        encoded_message = msgpack.packb(msg)
+        varint_length = self._to_varint(len(encoded_message))
+        return varint_length + encoded_message
 
     def decode_handshake(self, raw_message):
         try:
@@ -64,16 +70,6 @@ class MessagepackProtocol(Protocol):
             _logger.error(raw_message)
             _logger.error(ex)
             raise ex
-
-    def encode(self, message: Union[Message, HandshakeRequestMessage]):
-        if isinstance(message, HandshakeRequestMessage):
-            content = json.dumps(message.__dict__)
-            return content + self.record_separator
-
-        msg = self._encode_message(message)
-        encoded_message = msgpack.packb(msg)
-        varint_length = self._to_varint(len(encoded_message))
-        return varint_length + encoded_message
 
     def _encode_message(self, message: Message) -> List[Union[str, int, bool]]:
         result = []

@@ -3,12 +3,22 @@ import logging
 from json import JSONEncoder
 from typing import Any
 from typing import Dict
+from typing import Iterable
 from typing import List
+from typing import Tuple
 from typing import Union
 
+from aiosignalrcore.messages import CancelInvocationMessage  # 5
+from aiosignalrcore.messages import CloseMessage  # 7
+from aiosignalrcore.messages import CompletionMessage  # 3
 from aiosignalrcore.messages import HandshakeMessage
+from aiosignalrcore.messages import HandshakeResponseMessage
+from aiosignalrcore.messages import InvocationMessage  # 1
 from aiosignalrcore.messages import Message
 from aiosignalrcore.messages import MessageType
+from aiosignalrcore.messages import PingMessage  # 6
+from aiosignalrcore.messages import StreamInvocationMessage  # 4
+from aiosignalrcore.messages import StreamItemMessage  # 2
 from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)
@@ -22,11 +32,16 @@ class MessageEncoder(JSONEncoder):
         return obj.dump()
 
 
+message_encoder = MessageEncoder()
+
+
 class JSONProtocol(Protocol):
     def __init__(self) -> None:
-        # TODO: What does this constant mean?
-        super().__init__("json", 1, "Text", chr(0x1E))
-        self.encoder = MessageEncoder()
+        super().__init__(
+            protocol='json',
+            version=1,
+            record_separator=chr(0x1E),
+        )
 
     def decode(self, raw_message: Union[str, bytes]) -> List[Message]:
         if isinstance(raw_message, bytes):
@@ -46,5 +61,42 @@ class JSONProtocol(Protocol):
         return messages
 
     def encode(self, message: Union[Message, HandshakeMessage]) -> str:
-        _logger.debug(self.encoder.encode(message) + self.record_separator)
-        return self.encoder.encode(message) + self.record_separator
+        return message_encoder.encode(message) + self.record_separator
+
+    def decode_handshake(self, raw_message: Union[str, bytes]) -> Tuple[HandshakeResponseMessage, Iterable[Message]]:
+        if isinstance(raw_message, bytes):
+            raw_message = raw_message.decode()
+
+        # TODO: Cleanup
+        messages = raw_message.split(self.record_separator)
+        messages = list(filter(bool, messages))
+        data = json.loads(messages[0])
+        idx = raw_message.index(self.record_separator)
+        return (
+            HandshakeResponseMessage(data.get("error", None)),
+            self.decode(raw_message[idx + 1 :]) if len(messages) > 1 else [],
+        )
+
+    @staticmethod
+    def parse_message(dict_message: Dict[str, Any]) -> Message:
+        message_type = MessageType(dict_message.pop('type', 'close'))
+
+        if message_type is MessageType.invocation:
+            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
+            return InvocationMessage(**dict_message)
+        elif message_type is MessageType.stream_item:
+            return StreamItemMessage(**dict_message)
+        elif message_type is MessageType.completion:
+            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
+            return CompletionMessage(**dict_message, error=dict_message.get("error", None))
+        elif message_type is MessageType.stream_invocation:
+            return StreamInvocationMessage(**dict_message)
+        elif message_type is MessageType.cancel_invocation:
+            return CancelInvocationMessage(**dict_message)
+        elif message_type is MessageType.ping:
+            return PingMessage()
+        elif message_type is MessageType.close:
+            dict_message["allow_reconnect"] = dict_message.pop("allowReconnect", None)
+            return CloseMessage(**dict_message)
+        else:
+            raise NotImplementedError

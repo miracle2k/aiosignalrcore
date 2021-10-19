@@ -1,31 +1,18 @@
-import json
 from abc import ABC
 from abc import abstractmethod
-from typing import Any
-from typing import Dict
 from typing import Iterable
 from typing import Tuple
 from typing import Union
 
-# TODO: mapping of message types to classes
-from aiosignalrcore.messages import CancelInvocationMessage  # 5
-from aiosignalrcore.messages import CloseMessage  # 7
-from aiosignalrcore.messages import CompletionMessage  # 3
 from aiosignalrcore.messages import HandshakeRequestMessage
 from aiosignalrcore.messages import HandshakeResponseMessage
-from aiosignalrcore.messages import InvocationMessage  # 1
 from aiosignalrcore.messages import Message
-from aiosignalrcore.messages import MessageType
-from aiosignalrcore.messages import PingMessage  # 6
-from aiosignalrcore.messages import StreamInvocationMessage  # 4
-from aiosignalrcore.messages import StreamItemMessage  # 2
 
 
 class Protocol(ABC):
-    def __init__(self, protocol: str, version: int, transfer_format: str, record_separator: str):
+    def __init__(self, protocol: str, version: int, record_separator: str):
         self.protocol = protocol
         self.version = version
-        self.transfer_format = transfer_format
         self.record_separator = record_separator
 
     @abstractmethod
@@ -36,39 +23,9 @@ class Protocol(ABC):
     def encode(self, message: Union[Message, HandshakeRequestMessage]) -> Union[str, bytes]:
         ...
 
-    @staticmethod
-    def parse_message(dict_message: Dict[str, Any]) -> Message:
-        message_type = MessageType(dict_message.pop('type', 'close'))
-
-        if message_type is MessageType.invocation:
-            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
-            return InvocationMessage(**dict_message)
-        elif message_type is MessageType.stream_item:
-            return StreamItemMessage(**dict_message)
-        elif message_type is MessageType.completion:
-            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
-            return CompletionMessage(**dict_message, error=dict_message.get("error", None))
-        elif message_type is MessageType.stream_invocation:
-            return StreamInvocationMessage(**dict_message)
-        elif message_type is MessageType.cancel_invocation:
-            return CancelInvocationMessage(**dict_message)
-        elif message_type is MessageType.ping:
-            return PingMessage()
-        elif message_type is MessageType.close:
-            dict_message["allow_reconnect"] = dict_message.pop("allowReconnect", None)
-            return CloseMessage(**dict_message)
-        else:
-            raise NotImplementedError
-
-    def decode_handshake(self, raw_message: str) -> Tuple[HandshakeResponseMessage, Iterable[Message]]:
-        messages = raw_message.split(self.record_separator)
-        messages = list(filter(bool, messages))
-        data = json.loads(messages[0])
-        idx = raw_message.index(self.record_separator)
-        return (
-            HandshakeResponseMessage(data.get("error", None)),
-            self.decode(raw_message[idx + 1 :]) if len(messages) > 1 else [],
-        )
+    @abstractmethod
+    def decode_handshake(self, raw_message: Union[str, bytes]) -> Tuple[HandshakeResponseMessage, Iterable[Message]]:
+        ...
 
     def handshake_message(self) -> HandshakeRequestMessage:
         return HandshakeRequestMessage(self.protocol, self.version)

@@ -20,7 +20,7 @@ class HandshakeRequestMessage(HandshakeMessage):
 
 @dataclass
 class HandshakeResponseMessage(HandshakeMessage):
-    error: str
+    error: Optional[str]
 
 
 class MessageType(Enum):
