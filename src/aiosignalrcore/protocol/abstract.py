@@ -29,7 +29,7 @@ class Protocol(ABC):
         ...
 
     @abstractmethod
-    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> bytes:
+    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> Union[str, bytes]:
         ...
 
     @staticmethod

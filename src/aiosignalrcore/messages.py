@@ -1,8 +1,23 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import Field
+
+@dataclass
+class HandshakeMessage:
+    def dump(self) -> Dict[str, Any]:
+        return self.__dict__
+
+
+@dataclass
+class HandshakeRequestMessage(HandshakeMessage):
+    protocol: str
+    version: int
+
+
+@dataclass
+class HandshakeResponseMessage(HandshakeMessage):
+    error: str
 
 
 class MessageType(Enum):
@@ -40,27 +55,11 @@ class Message:
 
         return data
 
+
 @dataclass
 class ResponseMessage(Message):
     error: Optional[str]
     result: Optional[Any]
-
-
-@dataclass
-class HandshakeMessage:
-    def dump(self) -> Dict[str, Any]:
-        return self.__dict__
-
-
-@dataclass
-class HandshakeRequestMessage(HandshakeMessage):
-    protocol: str
-    version: int
-
-
-@dataclass
-class HandshakeResponseMessage(HandshakeMessage):
-    error: str
 
 
 """
@@ -241,7 +240,7 @@ class InvocationMessage(Message, type_=MessageType.invocation):
 
 @dataclass
 class InvocationClientStreamMessage(Message, type_=MessageType.invocation):
-    stream_ids: Any
+    stream_ids: List[str]
     target: str
     arguments: Any
     headers: Optional[Dict[str, Any]] = None

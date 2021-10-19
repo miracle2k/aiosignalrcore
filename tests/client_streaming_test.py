@@ -1,4 +1,4 @@
-from aiosignalrcore.subject import Subject
+from aiosignalrcore.client_stream import ClientStream
 from tests.base_test_case import BaseTestCase, Urls
 
 
@@ -6,11 +6,11 @@ class TestClientStreamMethod(BaseTestCase):
     def test_stream(self):
         self.complete = False
         self.items = list(range(0, 10))
-        subject = Subject()
-        self.connection.send("UploadStream", subject)
+        client_stream = ClientStream()
+        self.connection.send("ClientStream", client_stream)
         while len(self.items) > 0:
-            subject.next(str(self.items.pop()))
-        subject.complete()
+            client_stream.next(str(self.items.pop()))
+        client_stream.complete()
         self.assertTrue(len(self.items) == 0)
 
 

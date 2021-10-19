@@ -41,6 +41,6 @@ class JsonProtocol(Protocol):
     def write_message(self, message):
         raise NotImplementedError
 
-    def encode(self, message):
+    def encode(self, message) -> str:
         _logger.debug(self.encoder.encode(message) + self.record_separator)
         return self.encoder.encode(message) + self.record_separator

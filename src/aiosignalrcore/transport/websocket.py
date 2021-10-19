@@ -184,7 +184,7 @@ class WebsocketTransport(Transport):
     async def _on_message(self, message: Message) -> None:
         await self._callback(message)
 
-    async def send(self, message) -> None:
+    async def send(self, message: Message) -> None:
         _logger.debug("Sending message {0}".format(message))
         conn = await self._get_connection()
         await conn.send(self._protocol.encode(message))

@@ -22,7 +22,7 @@ class Transport(ABC):
         ...
 
     @abstractmethod
-    async def send(self, message: bytes):
+    async def send(self, message: Message) -> None:
         ...
 
     @abstractmethod

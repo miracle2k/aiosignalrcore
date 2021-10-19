@@ -4,8 +4,8 @@ import time
 sys.path.append("./")
 import logging
 
+from aiosignalrcore.client_stream import ClientStream
 from aiosignalrcore.hub_connection_builder import SignalRClient
-from aiosignalrcore.subject import Subject
 
 
 def input_with_default(input_text, default_value):
@@ -43,18 +43,18 @@ def bye(error, x):
 
 
 iteration = 0
-subject = Subject()
+client_stream = ClientStream()
 
 
 def interval_handle():
     global iteration
     iteration += 1
-    subject.next(str(iteration))
+    client_stream.next(str(iteration))
     if iteration == 10:
-        subject.complete()
+        client_stream.complete()
 
 
-hub_connection.send("UploadStream", subject)
+hub_connection.send("ClientStream", client_stream)
 
 while iteration != 10:
     interval_handle()

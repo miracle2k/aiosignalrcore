@@ -1,7 +1,9 @@
 import logging
 import uuid
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, List, Optional, Tuple, Union
 
+from aiosignalrcore.client_stream import ClientStream
 from aiosignalrcore.exceptions import ServerError
 from aiosignalrcore.handlers import InvocationHandler, StreamHandler
 from aiosignalrcore.messages import (
@@ -17,7 +19,6 @@ from aiosignalrcore.messages import (
 )
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.protocol.json import JsonProtocol
-from aiosignalrcore.subject import Subject
 from aiosignalrcore.transport.websocket import WebsocketTransport
 
 _logger = logging.getLogger(__name__)
@@ -71,34 +72,25 @@ class SignalRClient:
     def on_close(self, callback: Callable[[], Awaitable[None]]) -> None:
         self._transport.on_close(callback)
 
-    async def send(self, method: str, arguments: Union[Subject, List[Dict[str, Any]]], on_invocation=None) -> None:
+    async def send(self, method: str, arguments: List[Dict[str, Any]], on_invocation=None) -> None:
         """Sends a message
 
         Args:
             method (string): Method name
-            arguments (list|Subject): Method parameters
+            arguments (list|ClientStream): Method parameters
             on_invocation (function, optional): On invocation send callback
                 will be raised on send server function ends. Defaults to None.
 
         Raises:
             ConnectionError: If hub is not ready to send
-            TypeError: If arguments are invalid list or Subject
+            TypeError: If arguments are invalid list or ClientStream
         """
-        if isinstance(arguments, list):
-            message = InvocationMessage(str(uuid.uuid4()), method, arguments, self._headers)
+        message = InvocationMessage(str(uuid.uuid4()), method, arguments, self._headers)
 
-            if on_invocation:
-                self._stream_handlers.append(InvocationHandler(message.invocation_id, on_invocation))
+        if on_invocation:
+            self._stream_handlers.append(InvocationHandler(message.invocation_id, on_invocation))
 
-            await self._transport.send(message)
-
-        elif isinstance(arguments, Subject):
-            arguments.connection = self
-            arguments.target = method
-            arguments.start()
-
-        else:
-            raise NotImplementedError
+        await self._transport.send(message)
 
     async def _on_message(self, message: Message) -> None:
         # FIXME: When?
@@ -131,7 +123,7 @@ class SignalRClient:
         else:
             raise NotImplementedError
 
-    async def stream(self, event, event_params):
+    async def stream(self, event, event_params) -> StreamHandler:
         """Starts server streaming
             connection.stream(
             "Counter",
@@ -153,6 +145,13 @@ class SignalRClient:
         self._stream_handlers.append(stream_obj)
         await self._transport.send(StreamInvocationMessage(invocation_id, event, event_params, headers=self._headers))
         return stream_obj
+
+    @asynccontextmanager
+    async def client_stream(self, target: str) -> AsyncIterator[ClientStream]:
+        stream = ClientStream(self._transport, target)
+        await stream.invoke()
+        yield stream
+        await stream.complete()
 
     async def _on_invocation_message(self, message: InvocationMessage) -> None:
         fired_handlers = list(filter(lambda h: h[0] == message.target, self._handlers))
