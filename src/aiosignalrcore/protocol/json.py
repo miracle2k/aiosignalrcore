@@ -1,6 +1,8 @@
 import json
 import logging
+from functools import partial
 from json import JSONEncoder
+from operator import ne
 from typing import Any, Dict, List, Union
 
 from aiosignalrcore.messages import HandshakeMessage, Message, MessageType
@@ -27,17 +29,18 @@ class JSONProtocol(Protocol):
         if isinstance(raw_message, bytes):
             raw_message = raw_message.decode()
 
-        raw_messages = [
-            record.replace(self.record_separator, "")
-            for record in raw_message.split(self.record_separator)
-            if record is not None and record != "" and record != self.record_separator
-        ]
-        result = []
+        raw_messages = raw_message.split(self.record_separator)
+        messages: List[Message] = []
+
         for item in raw_messages:
+            if item in ("", self.record_separator):
+                continue
+
             dict_message = json.loads(item)
             if dict_message:
-                result.append(self.parse_message(dict_message))
-        return result
+                messages.append(self.parse_message(dict_message))
+
+        return messages
 
     def write_message(self, message):
         raise NotImplementedError
