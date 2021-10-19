@@ -18,7 +18,7 @@ from aiosignalrcore.messages import (
     StreamItemMessage,
 )
 from aiosignalrcore.protocol.abstract import Protocol
-from aiosignalrcore.protocol.json import JsonProtocol
+from aiosignalrcore.protocol.json import JSONProtocol
 from aiosignalrcore.transport.websocket import WebsocketTransport
 
 _logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class SignalRClient:
         headers: Optional[Dict[str, str]] = None,
     ) -> None:
         self._url = url
-        self._protocol = protocol or JsonProtocol()
+        self._protocol = protocol or JSONProtocol()
         self._headers = headers or {}
 
         self._handlers: List[Tuple[str, Callable]] = []
