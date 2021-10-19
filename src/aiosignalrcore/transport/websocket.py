@@ -182,7 +182,7 @@ class WebsocketTransport(Transport):
             for message in messages:
                 await self._on_message(message)
 
-        for message in self._protocol.parse_raw_message(raw_message):
+        for message in self._protocol.decode(raw_message):
             await self._on_message(message)
 
     async def _on_message(self, message: Message) -> None:

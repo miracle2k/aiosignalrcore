@@ -21,11 +21,7 @@ class Protocol(ABC):
         self.record_separator = record_separator
 
     @abstractmethod
-    def parse_raw_message(self, raw_message: Union[str, bytes]) -> Iterable[Message]:
-        ...
-
-    @abstractmethod
-    def write_message(self, message: Message):
+    def decode(self, raw_message: Union[str, bytes]) -> Iterable[Message]:
         ...
 
     @abstractmethod
@@ -63,7 +59,7 @@ class Protocol(ABC):
         idx = raw_message.index(self.record_separator)
         return (
             HandshakeResponseMessage(data.get("error", None)),
-            self.parse_raw_message(raw_message[idx + 1 :]) if len(messages) > 1 else [],
+            self.decode(raw_message[idx + 1 :]) if len(messages) > 1 else [],
         )
 
     def handshake_message(self) -> HandshakeRequestMessage:

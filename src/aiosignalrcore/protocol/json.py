@@ -25,7 +25,7 @@ class JSONProtocol(Protocol):
         super().__init__("json", 1, "Text", chr(0x1E))
         self.encoder = MessageEncoder()
 
-    def parse_raw_message(self, raw_message: Union[str, bytes]) -> List[Message]:
+    def decode(self, raw_message: Union[str, bytes]) -> List[Message]:
         if isinstance(raw_message, bytes):
             raw_message = raw_message.decode()
 
@@ -41,9 +41,6 @@ class JSONProtocol(Protocol):
                 messages.append(self.parse_message(dict_message))
 
         return messages
-
-    def write_message(self, message):
-        raise NotImplementedError
 
     def encode(self, message: Union[Message, HandshakeMessage]) -> str:
         _logger.debug(self.encoder.encode(message) + self.record_separator)

@@ -39,7 +39,7 @@ class MessagepackProtocol(Protocol):
     def __init__(self):
         super().__init__("messagepack", 1, "Text", chr(0x1E))
 
-    def parse_raw_message(self, raw):
+    def decode(self, raw):
         try:
             messages = []
             offset = 0
@@ -58,7 +58,7 @@ class MessagepackProtocol(Protocol):
         try:
             has_various_messages = 0x1E in raw_message
             handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
-            messages = self.parse_raw_message(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
+            messages = self.decode(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
             data = json.loads(handshake_data)
             return HandshakeResponseMessage(data.get("error", None)), messages
         except Exception as ex:
