@@ -24,6 +24,7 @@ class HandshakeResponseMessage(HandshakeMessage):
 
 
 class MessageType(Enum):
+    _ = None
     invocation = 1
     stream_item = 2
     completion = 3
@@ -36,7 +37,7 @@ class MessageType(Enum):
 
 @dataclass
 class Message:
-    def __init_subclass__(cls, type_: Optional[MessageType] = None) -> None:
+    def __init_subclass__(cls, type_: MessageType) -> None:
         # FIXME: https://github.com/samuelcolvin/pydantic/issues/288
         cls.type = type_  # type: ignore
 
@@ -47,10 +48,7 @@ class Message:
         stream_ids = data.pop('stream_ids', None)
 
         # FIXME: https://github.com/samuelcolvin/pydantic/issues/288
-        if not self.type:  # type: ignore
-            print('!!!!!!!!!!1', data)
-        if self.type is not None:  # type: ignore
-            data['type'] = self.type  # type: ignore
+        data['type'] = self.type  # type: ignore
         if invocation_id is not None:
             data['invocationId'] = invocation_id
         if stream_ids is not None:
@@ -60,7 +58,7 @@ class Message:
 
 
 @dataclass
-class ResponseMessage(Message):
+class ResponseMessage(Message, type_=MessageType._):
     error: Optional[str]
     result: Optional[Any]
 

@@ -18,7 +18,7 @@ from aiosignalrcore.messages import StreamInvocationMessage
 from aiosignalrcore.messages import StreamItemMessage
 from aiosignalrcore.protocol.abstract import Protocol
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('aiosignalrcore.protocol')
 
 
 class MessagepackProtocol(Protocol):

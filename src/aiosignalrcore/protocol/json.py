@@ -21,7 +21,7 @@ from aiosignalrcore.messages import StreamInvocationMessage  # 4
 from aiosignalrcore.messages import StreamItemMessage  # 2
 from aiosignalrcore.protocol.abstract import Protocol
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('aiosignalrcore.protocol')
 
 
 class MessageEncoder(JSONEncoder):

@@ -28,7 +28,7 @@ from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.protocol.json import JSONProtocol
 from aiosignalrcore.transport.websocket import WebsocketTransport
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('aiosignalrcore.client')
 
 
 class SignalRClient:
@@ -54,14 +54,10 @@ class SignalRClient:
         self._error_callback: Optional[Callable[[CompletionMessage], Awaitable[None]]] = None
 
     async def run(self) -> None:
+        # TODO: Auth support
+        # token = await self.auth_function()
+        # self._headers["Authorization"] = "Bearer " + token
 
-        # TODO: If auth...
-        # _logger.debug("Starting connection ...")
-        # self.token = self.auth_function()
-        # _logger.debug("auth function result {0}".format(self.token))
-        # self._headers["Authorization"] = "Bearer " + self.token
-
-        _logger.debug("Connection started")
         return await self._transport.run()
 
     def on(self, event: str, callback: Callable[..., Awaitable[None]]) -> None:
@@ -71,7 +67,6 @@ class SignalRClient:
             callback (Function): callback function,
                 arguments will be binded
         """
-        _logger.debug("Handler registered started {0}".format(event))
         self._handlers.append((event, callback))
 
     def on_open(self, callback: Callable[[], Awaitable[None]]) -> None:
