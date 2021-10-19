@@ -3,19 +3,25 @@ import logging
 from collections import Callable
 
 # from functools import partial
-from typing import Awaitable, Dict, Optional, Union
+from typing import Awaitable
+from typing import Dict
+from typing import Optional
+from typing import Union
 
 import aiohttp
 import websockets
 from websockets.protocol import State
 
-from aiosignalrcore.exceptions import AuthorizationError, HubError
+from aiosignalrcore.exceptions import AuthorizationError
+from aiosignalrcore.exceptions import HubError
 from aiosignalrcore.helpers import Helpers
-from aiosignalrcore.messages import CompletionMessage, Message
+from aiosignalrcore.messages import CompletionMessage
+from aiosignalrcore.messages import Message
 
 # from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
-from aiosignalrcore.transport.abstract import ConnectionState, Transport
+from aiosignalrcore.transport.abstract import ConnectionState
+from aiosignalrcore.transport.abstract import Transport
 
 # from aiosignalrcore.transport.websocket.reconnection import ConnectionStateChecker, ReconnectionHandler
 

@@ -3,7 +3,9 @@ from typing import Any
 
 from aiosignalrcore.transport.abstract import Transport
 
-from .messages import CompletionClientStreamMessage, InvocationClientStreamMessage, StreamItemMessage
+from .messages import CompletionClientStreamMessage
+from .messages import InvocationClientStreamMessage
+from .messages import StreamItemMessage
 
 
 class ClientStream:

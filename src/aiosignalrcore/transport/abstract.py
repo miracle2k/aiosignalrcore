@@ -1,5 +1,7 @@
-from abc import ABC, abstractmethod
-from enum import IntEnum, auto
+from abc import ABC
+from abc import abstractmethod
+from enum import IntEnum
+from enum import auto
 from typing import Union
 
 from aiosignalrcore.messages import Message

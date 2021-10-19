@@ -1,11 +1,14 @@
 import json
 import logging
-from functools import partial
 from json import JSONEncoder
-from operator import ne
-from typing import Any, Dict, List, Union
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Union
 
-from aiosignalrcore.messages import HandshakeMessage, Message, MessageType
+from aiosignalrcore.messages import HandshakeMessage
+from aiosignalrcore.messages import Message
+from aiosignalrcore.messages import MessageType
 from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)

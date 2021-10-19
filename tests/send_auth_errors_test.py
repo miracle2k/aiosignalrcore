@@ -4,7 +4,8 @@ import requests
 
 from aiosignalrcore.hub_connection_builder import SignalRClient
 from aiosignalrcore.protocol.messagepack_protocol import MessagepackProtocol
-from tests.base_test_case import BaseTestCase, Urls
+from tests.base_test_case import BaseTestCase
+from tests.base_test_case import Urls
 
 
 class TestSendAuthErrorMethod(BaseTestCase):

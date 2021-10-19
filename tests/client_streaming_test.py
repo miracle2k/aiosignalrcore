@@ -1,5 +1,6 @@
 from aiosignalrcore.client_stream import ClientStream
-from tests.base_test_case import BaseTestCase, Urls
+from tests.base_test_case import BaseTestCase
+from tests.base_test_case import Urls
 
 
 class TestClientStreamMethod(BaseTestCase):

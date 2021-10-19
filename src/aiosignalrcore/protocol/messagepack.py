@@ -1,22 +1,21 @@
 import json
 import logging
-from typing import List, Union
+from typing import List
+from typing import Union
 
 import msgpack  # type: ignore
 
-from aiosignalrcore.messages import (
-    CancelInvocationMessage,
-    CloseMessage,
-    CompletionMessage,
-    HandshakeRequestMessage,
-    HandshakeResponseMessage,
-    InvocationClientStreamMessage,
-    InvocationMessage,
-    Message,
-    PingMessage,
-    StreamInvocationMessage,
-    StreamItemMessage,
-)
+from aiosignalrcore.messages import CancelInvocationMessage
+from aiosignalrcore.messages import CloseMessage
+from aiosignalrcore.messages import CompletionMessage
+from aiosignalrcore.messages import HandshakeRequestMessage
+from aiosignalrcore.messages import HandshakeResponseMessage
+from aiosignalrcore.messages import InvocationClientStreamMessage
+from aiosignalrcore.messages import InvocationMessage
+from aiosignalrcore.messages import Message
+from aiosignalrcore.messages import PingMessage
+from aiosignalrcore.messages import StreamInvocationMessage
+from aiosignalrcore.messages import StreamItemMessage
 from aiosignalrcore.protocol.abstract import Protocol
 
 _logger = logging.getLogger(__name__)

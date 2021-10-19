@@ -3,7 +3,8 @@ import time
 import uuid
 
 from aiosignalrcore.exceptions import ConnectionError
-from tests.base_test_case import BaseTestCase, Urls
+from tests.base_test_case import BaseTestCase
+from tests.base_test_case import Urls
 
 
 class TestSendException(BaseTestCase):

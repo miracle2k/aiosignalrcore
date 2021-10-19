@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, Dict
+from typing import Callable
+from typing import Dict
 
 _logger = logging.getLogger(__name__)
 

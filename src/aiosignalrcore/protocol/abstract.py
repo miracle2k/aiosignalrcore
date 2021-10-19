@@ -1,16 +1,24 @@
 import json
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Tuple, Union
+from abc import ABC
+from abc import abstractmethod
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Tuple
+from typing import Union
 
 # TODO: mapping of message types to classes
 from aiosignalrcore.messages import CancelInvocationMessage  # 5
 from aiosignalrcore.messages import CloseMessage  # 7
 from aiosignalrcore.messages import CompletionMessage  # 3
+from aiosignalrcore.messages import HandshakeRequestMessage
+from aiosignalrcore.messages import HandshakeResponseMessage
 from aiosignalrcore.messages import InvocationMessage  # 1
+from aiosignalrcore.messages import Message
+from aiosignalrcore.messages import MessageType
 from aiosignalrcore.messages import PingMessage  # 6
 from aiosignalrcore.messages import StreamInvocationMessage  # 4
 from aiosignalrcore.messages import StreamItemMessage  # 2
-from aiosignalrcore.messages import HandshakeRequestMessage, HandshakeResponseMessage, Message, MessageType
 
 
 class Protocol(ABC):
