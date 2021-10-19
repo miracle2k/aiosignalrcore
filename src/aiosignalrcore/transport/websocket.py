@@ -11,7 +11,7 @@ from websockets.protocol import State
 
 from aiosignalrcore.exceptions import AuthorizationError, HubError
 from aiosignalrcore.helpers import Helpers
-from aiosignalrcore.messages import Message
+from aiosignalrcore.messages import CompletionMessage, Message
 
 # from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
@@ -51,6 +51,7 @@ class WebsocketTransport(Transport):
 
         self._open_callback: Optional[Callable[[], Awaitable[None]]] = None
         self._close_callback: Optional[Callable[[], Awaitable[None]]] = None
+        self._error_message: Optional[Callable[[CompletionMessage], Awaitable[None]]] = None
 
         # self.enable_trace = enable_trace
         # self.skip_negotiation = skip_negotiation
@@ -64,6 +65,9 @@ class WebsocketTransport(Transport):
 
     def on_close(self, callback: Callable[[], Awaitable[None]]):
         self._close_callback = callback
+
+    def on_error(self, callback: Callable[[CompletionMessage], Awaitable[None]]):
+        self._error_callback = callback
 
     def _set_state(self, state: ConnectionState) -> None:
         if state == ConnectionState.connected:

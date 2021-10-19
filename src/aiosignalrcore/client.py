@@ -44,6 +44,7 @@ class SignalRClient:
             callback=self._on_message,
             headers=self._headers,
         )
+        self._error_callback: Optional[Callable[[CompletionMessage], Awaitable[None]]] = None
 
     async def run(self) -> None:
 
@@ -71,6 +72,9 @@ class SignalRClient:
 
     def on_close(self, callback: Callable[[], Awaitable[None]]) -> None:
         self._transport.on_close(callback)
+
+    def on_error(self, callback: Callable[[CompletionMessage], Awaitable[None]]) -> None:
+        self._error_callback = callback
 
     async def send(self, method: str, arguments: List[Dict[str, Any]], on_invocation=None) -> None:
         """Sends a message
@@ -161,8 +165,10 @@ class SignalRClient:
             await handler(message.arguments)
 
     async def _on_completion_message(self, message: CompletionMessage) -> None:
-        if message.error is not None and len(message.error) > 0:
-            self._on_error(message)
+        if message.error:
+            if not self._error_callback:
+                raise Exception
+            await self._error_callback(message)
 
         # Send callbacks
         fired_stream_handlers = list(
@@ -218,9 +224,6 @@ class SignalRClient:
                 self._stream_handlers,
             )
         )
-
-    async def _on_error(self, error: Any) -> None:
-        pass
 
     async def _on_close_message(self, message: CloseMessage) -> None:
         if message.error:
