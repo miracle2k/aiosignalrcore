@@ -34,22 +34,16 @@ class Protocol(ABC):
 
     @staticmethod
     def parse_message(dict_message: Dict[str, Any]) -> Message:
-        if 'type' in dict_message:
-            message_type = MessageType(dict_message['type'])
-        else:
-            message_type = MessageType.close
+        message_type = MessageType(dict_message.pop('type', 'close'))
 
-        # FIXME: Copypaste, classmethod from_json
-        dict_message["invocation_id"] = dict_message.get("invocationId", None)
-        dict_message["headers"] = dict_message.get("headers", {})
-        dict_message["error"] = dict_message.get("error", None)
-        dict_message["result"] = dict_message.get("result", None)
         if message_type is MessageType.invocation:
+            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
             return InvocationMessage(**dict_message)
         elif message_type is MessageType.stream_item:
             return StreamItemMessage(**dict_message)
         elif message_type is MessageType.completion:
-            return CompletionMessage(**dict_message)
+            dict_message["invocation_id"] = dict_message.pop("invocationId", None)
+            return CompletionMessage(**dict_message, error=dict_message.get("error", None))
         elif message_type is MessageType.stream_invocation:
             return StreamInvocationMessage(**dict_message)
         elif message_type is MessageType.cancel_invocation:
@@ -57,7 +51,8 @@ class Protocol(ABC):
         elif message_type is MessageType.ping:
             return PingMessage()
         elif message_type is MessageType.close:
-            return CloseMessage(error=dict_message['error'], allow_reconnect=dict_message['allowReconnect'])
+            dict_message["allow_reconnect"] = dict_message.pop("allowReconnect", None)
+            return CloseMessage(**dict_message)
         else:
             raise NotImplementedError
 

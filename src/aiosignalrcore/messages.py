@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from pydantic import Field
+
 
 class MessageType(Enum):
     invocation = 1
@@ -14,11 +16,11 @@ class MessageType(Enum):
     invocation_binding_failure = -1
 
 
+@dataclass
 class Message:
-    type_: Optional[MessageType]
-
     def __init_subclass__(cls, type_: Optional[MessageType] = None) -> None:
-        cls.type_ = type_
+        # FIXME: https://github.com/samuelcolvin/pydantic/issues/288
+        cls.type = type_  # type: ignore
 
     def dump(self) -> Dict[str, Any]:
         data = self.__dict__
@@ -26,10 +28,11 @@ class Message:
         invocation_id = data.pop('invocation_id', None)
         stream_ids = data.pop('stream_ids', None)
 
-        if not self.type_:
+        # FIXME: https://github.com/samuelcolvin/pydantic/issues/288
+        if not self.type:  # type: ignore
             print('!!!!!!!!!!1', data)
-        if self.type_ is not None:
-            data['type'] = self.type_
+        if self.type is not None:  # type: ignore
+            data['type'] = self.type  # type: ignore
         if invocation_id is not None:
             data['invocationId'] = invocation_id
         if stream_ids is not None:
@@ -37,15 +40,26 @@ class Message:
 
         return data
 
+@dataclass
+class ResponseMessage(Message):
+    error: Optional[str]
+    result: Optional[Any]
+
 
 @dataclass
-class HandshakeRequestMessage(Message):
+class HandshakeMessage:
+    def dump(self) -> Dict[str, Any]:
+        return self.__dict__
+
+
+@dataclass
+class HandshakeRequestMessage(HandshakeMessage):
     protocol: str
     version: int
 
 
 @dataclass
-class HandshakeResponseMessage(Message):
+class HandshakeResponseMessage(HandshakeMessage):
     error: str
 
 

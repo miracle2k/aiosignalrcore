@@ -85,7 +85,7 @@ class SignalRClient:
             TypeError: If arguments are invalid list or Subject
         """
         if isinstance(arguments, list):
-            message = InvocationMessage(str(uuid.uuid4()), method, arguments, headers=self._headers)
+            message = InvocationMessage(str(uuid.uuid4()), method, arguments, self._headers)
 
             if on_invocation:
                 self._stream_handlers.append(InvocationHandler(message.invocation_id, on_invocation))
@@ -102,7 +102,7 @@ class SignalRClient:
 
     async def _on_message(self, message: Message) -> None:
         # FIXME: When?
-        if message.type_ == MessageType.invocation_binding_failure:
+        if message.type == MessageType.invocation_binding_failure:  # type: ignore
             raise Exception
             # _logger.error(message)
             # self._on_error(message)
