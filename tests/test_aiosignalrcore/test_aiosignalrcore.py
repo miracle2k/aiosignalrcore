@@ -9,13 +9,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class TestAiosignalrcore(IsolatedAsyncioTestCase):
-    async def test_aiosignalrcore(self):
+    async def test_aiosignalrcore(self) -> None:
         url = 'https://api.tzkt.io/v1/events'
         client = SignalRClient(url)
 
         task = asyncio.create_task(client.run())
 
-        async def _on_open():
+        async def _on_open() -> None:
             task.cancel()
 
         client.on_open(_on_open)

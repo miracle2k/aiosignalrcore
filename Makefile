@@ -22,7 +22,7 @@ flake:
 	poetry run flakehell lint src tests
 
 mypy:
-	# poetry run mypy src tests --strict
+	# poetry run mypy src tests --strict --implicit-reexport
 	poetry run mypy src tests
 
 test:

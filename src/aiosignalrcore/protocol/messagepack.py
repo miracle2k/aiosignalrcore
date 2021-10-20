@@ -1,7 +1,9 @@
 # TODO: Refactor this module
 import json
 import logging
+from typing import Iterable
 from typing import List
+from typing import Tuple
 from typing import Union
 
 import msgpack  # type: ignore
@@ -36,8 +38,12 @@ class MessagepackProtocol(Protocol):
         "stream_ids",
     ]
 
-    def __init__(self):
-        super().__init__("messagepack", 1, chr(0x1E))
+    def __init__(self) -> None:
+        super().__init__(
+            protocol='messagepack',
+            version=1,
+            record_separator=chr(0x1E),
+        )
 
     def decode(self, raw_message: Union[str, bytes]) -> List[Message]:
         messages: List[Message] = []
@@ -50,7 +56,7 @@ class MessagepackProtocol(Protocol):
             messages.append(message)
         return messages
 
-    def encode(self, message: Union[Message, HandshakeRequestMessage]):
+    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> str:
         if isinstance(message, HandshakeRequestMessage):
             content = json.dumps(message.__dict__)
             return content + self.record_separator
@@ -60,17 +66,15 @@ class MessagepackProtocol(Protocol):
         varint_length = self._to_varint(len(encoded_message))
         return varint_length + encoded_message
 
-    def decode_handshake(self, raw_message):
-        try:
-            has_various_messages = 0x1E in raw_message
-            handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
-            messages = self.decode(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
-            data = json.loads(handshake_data)
-            return HandshakeResponseMessage(data.get("error", None)), messages
-        except Exception as ex:
-            _logger.error(raw_message)
-            _logger.error(ex)
-            raise ex
+    def decode_handshake(self, raw_message: Union[str, bytes]) -> Tuple[HandshakeResponseMessage, Iterable[Message]]:
+        if isinstance(raw_message, str):
+            raw_message = raw_message.encode()
+
+        has_various_messages = 0x1E in raw_message
+        handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
+        messages = self.decode(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
+        data = json.loads(handshake_data)
+        return HandshakeResponseMessage(data.get("error", None)), messages
 
     def _encode_message(self, message: Message) -> List[Union[str, int, bool]]:
         result = []
@@ -140,7 +144,7 @@ class MessagepackProtocol(Protocol):
         print("---------------------------------------")
         raise Exception("Unknown message type.")
 
-    def _to_varint(self, value):
+    def _to_varint(self, value: int) -> bytes:
         buffer = b""
 
         while True:

@@ -23,7 +23,7 @@ from aiosignalrcore.protocol.abstract import Protocol
 
 class MessageEncoder(JSONEncoder):
     # https://github.com/PyCQA/pylint/issues/414
-    def default(self, obj: Union[Message, MessageType]) -> Union[int, Dict[str, Any]]:
+    def default(self, obj: Union[Message, MessageType]) -> Union[str, int, Dict[str, Any]]:
         if isinstance(obj, MessageType):
             return obj.value
         return obj.dump()

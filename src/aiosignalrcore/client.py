@@ -78,7 +78,12 @@ class SignalRClient:
     def on_error(self, callback: Callable[[CompletionMessage], Awaitable[None]]) -> None:
         self._error_callback = callback
 
-    async def send(self, method: str, arguments: List[Dict[str, Any]], on_invocation=None) -> None:
+    async def send(
+        self,
+        method: str,
+        arguments: List[Dict[str, Any]],
+        on_invocation: Optional[Callable[[], Awaitable[None]]] = None,
+    ) -> None:
         """Sends a message
 
         Args:
