@@ -7,8 +7,10 @@ from typing import Optional
 from typing import Union
 
 import aiohttp
-import websockets
+from websockets.client import WebSocketClientProtocol
+from websockets.client import connect as connect_websocket
 from websockets.protocol import State
+from websockets.exceptions import ConnectionClosed
 
 from aiosignalrcore.exceptions import AuthorizationError
 from aiosignalrcore.exceptions import HubError
@@ -41,7 +43,7 @@ class WebsocketTransport(Transport):
 
         self._state = ConnectionState.disconnected
         self._connected = asyncio.Event()
-        self._ws: Optional[websockets.WebSocketClientProtocol] = None
+        self._ws: Optional[WebSocketClientProtocol] = None
         self._open_callback: Optional[Callable[[], Awaitable[None]]] = None
         self._close_callback: Optional[Callable[[], Awaitable[None]]] = None
 
@@ -92,7 +94,7 @@ class WebsocketTransport(Transport):
 
         self._state = state
 
-    async def _get_connection(self) -> websockets.WebSocketClientProtocol:
+    async def _get_connection(self) -> WebSocketClientProtocol:
         await asyncio.wait_for(self._connected.wait(), timeout=10)
         if not self._ws or self._ws.state != State.OPEN:
             raise RuntimeError
@@ -109,7 +111,7 @@ class WebsocketTransport(Transport):
             try:
                 _logger.info('Establishing WebSocket connection')
                 # TODO: Tune connection parameters
-                protocol = websockets.connect(
+                protocol = connect_websocket(
                     self._url,
                     max_size=1_000_000_000,
                     extra_headers=self._headers,
@@ -124,21 +126,21 @@ class WebsocketTransport(Transport):
                         self._keepalive(conn),
                     )
 
-            except websockets.exceptions.ConnectionClosed:
+            except ConnectionClosed:
                 self._ws = None
                 await self._set_state(ConnectionState.reconnecting)
 
-    async def _process(self, conn: websockets.WebSocketClientProtocol) -> None:
+    async def _process(self, conn: WebSocketClientProtocol) -> None:
         while True:
             raw_message = await conn.recv()
             await self._on_raw_message(raw_message)
 
-    async def _keepalive(self, conn: websockets.WebSocketClientProtocol) -> None:
+    async def _keepalive(self, conn: WebSocketClientProtocol) -> None:
         while True:
             await asyncio.sleep(10)
             await conn.send(self._protocol.encode(PingMessage()))
 
-    async def _handshake(self, conn: websockets.WebSocketClientProtocol) -> None:
+    async def _handshake(self, conn: WebSocketClientProtocol) -> None:
         _logger.info('Sending handshake to server')
         our_handshake = self._protocol.handshake_message()
         await conn.send(self._protocol.encode(our_handshake))

@@ -19,12 +19,10 @@ black:
 	poetry run black src tests
 
 flake:
-	# poetry run flakehell lint src tests
-	poetry run flakehell lint src
+	poetry run flakehell lint src tests
 
 mypy:
-	# poetry run mypy src tests
-	poetry run mypy src
+	poetry run mypy src tests
 
 test:
 	poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
