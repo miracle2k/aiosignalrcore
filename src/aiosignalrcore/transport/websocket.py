@@ -1,9 +1,7 @@
 import asyncio
 import logging
-from collections import Callable
-
-# from functools import partial
 from typing import Awaitable
+from typing import Callable
 from typing import Dict
 from typing import Optional
 from typing import Union
@@ -18,13 +16,9 @@ from aiosignalrcore.helpers import Helpers
 from aiosignalrcore.messages import CompletionMessage
 from aiosignalrcore.messages import Message
 from aiosignalrcore.messages import PingMessage
-
-# from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.transport.abstract import ConnectionState
 from aiosignalrcore.transport.abstract import Transport
-
-# from aiosignalrcore.transport.websocket.reconnection import ConnectionStateChecker, ReconnectionHandler
 
 _logger = logging.getLogger('aiosignalrcore.transport')
 
@@ -163,8 +157,12 @@ class WebsocketTransport(Transport):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(negotiate_url, headers=self._headers) as response:
-                if response.status != 200:
-                    raise HubError(response.status) if response.status != 401 else AuthorizationError()
+                if response.status == 200:
+                    pass
+                elif response.status == 401:
+                    raise AuthorizationError
+                else:
+                    raise HubError(response.status)
 
                 data = await response.json()
 

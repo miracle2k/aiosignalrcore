@@ -27,7 +27,7 @@ mypy:
 	poetry run mypy src
 
 test:
-	# poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
+	poetry run pytest --cov-report=term-missing --cov=aiosignalrcore --cov-report=xml -v tests
 
 cover:
 	poetry run diff-cover coverage.xml
