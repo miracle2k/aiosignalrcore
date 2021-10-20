@@ -9,8 +9,8 @@ from typing import Union
 import aiohttp
 from websockets.client import WebSocketClientProtocol
 from websockets.client import connect as connect_websocket
-from websockets.protocol import State
 from websockets.exceptions import ConnectionClosed
+from websockets.legacy.protocol import State
 
 from aiosignalrcore.exceptions import AuthorizationError
 from aiosignalrcore.exceptions import HubError
