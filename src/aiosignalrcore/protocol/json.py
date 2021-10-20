@@ -1,5 +1,4 @@
 import json
-import logging
 from json import JSONEncoder
 from typing import Any
 from typing import Dict
@@ -20,8 +19,6 @@ from aiosignalrcore.messages import PingMessage  # 6
 from aiosignalrcore.messages import StreamInvocationMessage  # 4
 from aiosignalrcore.messages import StreamItemMessage  # 2
 from aiosignalrcore.protocol.abstract import Protocol
-
-_logger = logging.getLogger('aiosignalrcore.protocol')
 
 
 class MessageEncoder(JSONEncoder):
