@@ -111,8 +111,8 @@ Example - A `Close` message with an error
 
 @dataclass
 class CloseMessage(Message, type_=MessageType.close):
-    error: str
-    allow_reconnect: bool
+    allow_reconnect: Optional[bool] = None
+    error: Optional[str] = None
     headers: Optional[Dict[str, Any]] = None
 
 
