@@ -9,15 +9,13 @@ ws_to_http = {k: v for k, v in zip(websocket_schemas, http_schemas)}
 
 
 def replace_scheme(url: str, ws: bool) -> str:
-    parsed_url = parse.urlsplit(url)
+    scheme, netloc, path, query, fragment = parse.urlsplit(url)
 
     with suppress(KeyError):
-        if ws:
-            parsed_url._replace(scheme=http_to_ws[parsed_url.scheme])
-        else:
-            parsed_url._replace(scheme=ws_to_http[parsed_url.scheme])
+        mapping = http_to_ws if ws else ws_to_http
+        scheme = mapping[scheme]
 
-    return parse.urlunsplit(parsed_url)
+    return parse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
 def get_negotiate_url(url: str) -> str:
