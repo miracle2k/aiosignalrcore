@@ -14,13 +14,15 @@ from websockets.legacy.protocol import State
 
 from aiosignalrcore.exceptions import AuthorizationError
 from aiosignalrcore.exceptions import HubError
-from aiosignalrcore.helpers import Helpers
 from aiosignalrcore.messages import CompletionMessage
 from aiosignalrcore.messages import Message
 from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.protocol.abstract import Protocol
 from aiosignalrcore.transport.abstract import ConnectionState
 from aiosignalrcore.transport.abstract import Transport
+from aiosignalrcore.utils import get_connection_url
+from aiosignalrcore.utils import get_negotiate_url
+from aiosignalrcore.utils import replace_scheme
 
 _logger = logging.getLogger('aiosignalrcore.transport')
 
@@ -154,8 +156,8 @@ class WebsocketTransport(Transport):
             await self._on_message(message)
 
     async def _negotiate(self) -> None:
-        negotiate_url = Helpers.get_negotiate_url(self._url)
-        _logger.info('Performang negotiation, URL: %s', negotiate_url)
+        negotiate_url = get_negotiate_url(self._url)
+        _logger.info('Performang negotiation, URL: `%s`', negotiate_url)
 
         async with aiohttp.ClientSession() as session:
             async with session.post(negotiate_url, headers=self._headers) as response:
@@ -168,15 +170,21 @@ class WebsocketTransport(Transport):
 
                 data = await response.json()
 
-        if "connectionId" in data.keys():
-            self._url = Helpers.encode_connection_id(self._url, data["connectionId"])
+        connection_id = data.get('connectionId')
+        url = data.get('url')
+        access_token = data.get('accessToken')
 
-        # Azure
-        if "url" in data.keys() and "accessToken" in data.keys():
-            _logger.info("Azure url, reformat headers, token and url {0}".format(data))
-            self._url = data["url"] if data["url"].startswith("ws") else Helpers.http_to_websocket(data["url"])
-            self._token = data["accessToken"]
-            self._headers = {"Authorization": "Bearer " + self._token}
+        if connection_id:
+            _logger.info('Negotiation completed, updating connection parameters')
+            self._url = get_connection_url(self._url, connection_id)
+
+        elif url and access_token:
+            _logger.info('Azure negotiation completed, updating connection parameters')
+            self._url = replace_scheme(url, ws=True)
+            self._headers['Authorization'] = f'Bearer {access_token}'
+
+        else:
+            raise HubError('Invalid response from `negotiate` endpoint', data)
 
     async def _on_raw_message(self, raw_message: Union[str, bytes]) -> None:
         for message in self._protocol.decode(raw_message):

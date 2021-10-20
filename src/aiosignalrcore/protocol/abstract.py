@@ -10,7 +10,7 @@ from aiosignalrcore.messages import Message
 
 
 class Protocol(ABC):
-    def __init__(self, protocol: str, version: int, record_separator: str):
+    def __init__(self, protocol: str, version: int, record_separator: str) -> None:
         self.protocol = protocol
         self.version = version
         self.record_separator = record_separator
