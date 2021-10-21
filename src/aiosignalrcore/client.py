@@ -134,7 +134,7 @@ class SignalRClient:
         else:
             raise NotImplementedError
 
-    async def stream(self, event, event_params) -> StreamHandler:
+    async def stream(self, event: str, event_params: List[str]) -> StreamHandler:
         """Starts server streaming
             connection.stream(
             "Counter",

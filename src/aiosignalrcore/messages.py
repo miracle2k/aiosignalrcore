@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 from typing import Any
 from typing import Dict
 from typing import List
@@ -23,8 +23,10 @@ class HandshakeResponseMessage(HandshakeMessage):
     error: Optional[str]
 
 
-class MessageType(Enum):
-    _ = None
+class MessageType(IntEnum):
+    value: int
+
+    _ = 9999
     invocation = 1
     stream_item = 2
     completion = 3
@@ -111,8 +113,8 @@ Example - A `Close` message with an error
 
 @dataclass
 class CloseMessage(Message, type_=MessageType.close):
-    allow_reconnect: Optional[bool] = None
     error: Optional[str] = None
+    allow_reconnect: Optional[bool] = None
     headers: Optional[Dict[str, Any]] = None
 
 

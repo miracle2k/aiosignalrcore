@@ -1,10 +1,14 @@
 # TODO: Refactor this module
 import json
-import logging
+from collections import deque
+from typing import Any
+from typing import Deque
 from typing import Iterable
 from typing import List
+from typing import Sequence
 from typing import Tuple
 from typing import Union
+from typing import cast
 
 import msgpack  # type: ignore
 
@@ -16,28 +20,28 @@ from aiosignalrcore.messages import HandshakeResponseMessage
 from aiosignalrcore.messages import InvocationClientStreamMessage
 from aiosignalrcore.messages import InvocationMessage
 from aiosignalrcore.messages import Message
+from aiosignalrcore.messages import MessageType
 from aiosignalrcore.messages import PingMessage
 from aiosignalrcore.messages import StreamInvocationMessage
 from aiosignalrcore.messages import StreamItemMessage
 from aiosignalrcore.protocol.abstract import Protocol
 
-_logger = logging.getLogger('aiosignalrcore.protocol')
+_attribute_priority = (
+    # NOTE: Python limitation, left as is
+    'type_',
+    'type',
+    'headers',
+    'invocation_id',
+    'target',
+    'arguments',
+    'item',
+    'result_kind',
+    'result',
+    'stream_ids',
+)
 
 
 class MessagepackProtocol(Protocol):
-
-    _priority = [
-        "type",
-        "headers",
-        "invocation_id",
-        "target",
-        "arguments",
-        "item",
-        "result_kind",
-        "result",
-        "stream_ids",
-    ]
-
     def __init__(self) -> None:
         super().__init__(
             protocol='messagepack',
@@ -52,17 +56,21 @@ class MessagepackProtocol(Protocol):
             length = msgpack.unpackb(raw_message[offset : offset + 1])
             values = msgpack.unpackb(raw_message[offset + 1 : offset + length + 1])
             offset += length + 1
-            message = self._decode_message(values)
+            message = self.parse_message(values)
             messages.append(message)
         return messages
 
-    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> str:
-        if isinstance(message, HandshakeRequestMessage):
-            content = json.dumps(message.__dict__)
-            return content + self.record_separator
+    def encode(self, message: Union[Message, HandshakeRequestMessage]) -> bytes:
+        raw_message: Deque[Any] = deque()
 
-        msg = self._encode_message(message)
-        encoded_message = msgpack.packb(msg)
+        for attr in _attribute_priority:
+            if hasattr(message, attr):
+                if attr == 'type_':
+                    raw_message.append(getattr(message, attr).value)
+                else:
+                    raw_message.append(getattr(message, attr))
+
+        encoded_message = cast(bytes, msgpack.packb(raw_message))
         varint_length = self._to_varint(len(encoded_message))
         return varint_length + encoded_message
 
@@ -74,22 +82,11 @@ class MessagepackProtocol(Protocol):
         handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
         messages = self.decode(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
         data = json.loads(handshake_data)
-        return HandshakeResponseMessage(data.get("error", None)), messages
+        return HandshakeResponseMessage(data.get('error', None)), messages
 
-    def _encode_message(self, message: Message) -> List[Union[str, int, bool]]:
-        result = []
-
-        # sort attributes
-        for attribute in self._priority:
-            if hasattr(message, attribute):
-                if attribute == "type":
-                    result.append(getattr(message, attribute).value)
-                else:
-                    result.append(getattr(message, attribute))
-        return result
-
-    def _decode_message(self, raw) -> Message:
-        # {} {"error"}
+    @staticmethod
+    def parse_message(seq_message: Sequence[Any]) -> Message:
+        # {} {'error'}
         # [1, Headers, InvocationId, Target, [Arguments], [StreamIds]]
         # [2, Headers, InvocationId, Item]
         # [3, Headers, InvocationId, ResultKind, Result]
@@ -98,54 +95,38 @@ class MessagepackProtocol(Protocol):
         # [6]
         # [7, Error, AllowReconnect?]
 
-        # TODO: type_, MessageType, unpack values
-        if raw[0] == 1:  # InvocationMessage
-            if len(raw[5]) > 0:
-                return InvocationClientStreamMessage(headers=raw[1], stream_ids=raw[5], target=raw[3], arguments=raw[4])
+        msg = seq_message
+        message_type = MessageType(msg[0])
+
+        if message_type is MessageType.invocation:
+            if len(msg[5]) > 0:
+                return InvocationClientStreamMessage(headers=msg[1], stream_ids=msg[5], target=msg[3], arguments=msg[4])
             else:
-                return InvocationMessage(
-                    headers=raw[1],
-                    invocation_id=raw[2],
-                    target=raw[3],
-                    arguments=raw[4],
-                )
-
-        elif raw[0] == 2:  # StreamItemMessage
-            return StreamItemMessage(headers=raw[1], invocation_id=raw[2], item=raw[3])
-
-        elif raw[0] == 3:  # CompletionMessage
-            # TODO: kind enum
-            result_kind = raw[3]
-            if result_kind == 1:
-                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=None, error=raw[4])
-
-            elif result_kind == 2:
-                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=None, error=None)
-
-            elif result_kind == 3:
-                return CompletionMessage(headers=raw[1], invocation_id=raw[2], result=raw[4], error=None)
+                return InvocationMessage(headers=msg[1], invocation_id=msg[2], target=msg[3], arguments=msg[4])
+        elif message_type is MessageType.stream_item:
+            return StreamItemMessage(headers=msg[1], invocation_id=msg[2], item=msg[3])
+        elif message_type is MessageType.completion:
+            if msg[3] == 1:
+                return CompletionMessage(headers=msg[1], invocation_id=msg[2], result=None, error=msg[4])
+            elif msg[3] == 2:
+                return CompletionMessage(headers=msg[1], invocation_id=msg[2], result=None, error=None)
+            elif msg[3] == 3:
+                return CompletionMessage(headers=msg[1], invocation_id=msg[2], result=msg[4], error=None)
             else:
-                raise Exception("Unknown result kind.")
-
-        elif raw[0] == 4:  # StreamInvocationMessage
-            return StreamInvocationMessage(headers=raw[1], invocation_id=raw[2], target=raw[3], arguments=raw[4])  # stream_id missing?
-
-        elif raw[0] == 5:  # CancelInvocationMessage
-            return CancelInvocationMessage(headers=raw[1], invocation_id=raw[2])
-
-        elif raw[0] == 6:  # PingMessageEncoding
+                raise NotImplementedError
+        elif message_type is MessageType.stream_invocation:
+            return StreamInvocationMessage(headers=msg[1], invocation_id=msg[2], target=msg[3], arguments=msg[4])
+        elif message_type is MessageType.cancel_invocation:
+            return CancelInvocationMessage(headers=msg[1], invocation_id=msg[2])
+        elif message_type is MessageType.ping:
             return PingMessage()
-
-        elif raw[0] == 7:  # CloseMessageEncoding
-            return CloseMessage(*raw)  # AllowReconnect is missing
-        # TODO: remove
-        print(".......................................")
-        print(raw)
-        print("---------------------------------------")
-        raise Exception("Unknown message type.")
+        elif message_type is MessageType.close:
+            return CloseMessage(*msg[1:])
+        else:
+            raise NotImplementedError
 
     def _to_varint(self, value: int) -> bytes:
-        buffer = b""
+        buffer = b''
 
         while True:
 
